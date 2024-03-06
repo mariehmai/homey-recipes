@@ -1,6 +1,9 @@
-# Welcome to Remix!
+# Homey Recipes
 
-- [Remix Docs](https://remix.run/docs)
+A Remix app deployed with Fly.io showing simple recipes. Deployed at https://homey-recipes.fly.dev
+
+- [Remix Docs](https:o//remix.run/docs)
+- [Fly.io](https://fly.io/docs)
 
 ## Development
 
