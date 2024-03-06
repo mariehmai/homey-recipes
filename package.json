@@ -6,6 +6,8 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev --manual",
+    "format": "prettier --write .",
+    "format:repo": "npm run format && npm run lint -- --fix",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/index.js",
     "typecheck": "tsc"
@@ -22,6 +24,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.5.2",
     "@remix-run/dev": "^2.8.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
