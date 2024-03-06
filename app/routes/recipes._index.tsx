@@ -5,5 +5,9 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Recipes() {
-  return <div>Recipes</div>;
+  return (
+    <div>
+      <h1>Recipes</h1>
+    </div>
+  );
 }
