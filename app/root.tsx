@@ -1,4 +1,3 @@
-import styles from "~/index.css";
 import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
@@ -10,9 +9,12 @@ import {
   useMatch,
   useNavigate,
 } from "@remix-run/react";
-import { Link } from "./components/Link";
 import { RiSliceLine } from "@remixicon/react";
 import clsx from "clsx";
+
+import styles from "~/index.css";
+
+import { Link } from "./components/Link";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
