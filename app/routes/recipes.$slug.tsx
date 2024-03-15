@@ -3,6 +3,8 @@ import { useParams } from "@remix-run/react";
 import clsx from "clsx";
 import { FunctionComponent, useState } from "react";
 
+import { BackButton } from "~/components/BackButton";
+
 export const meta: MetaFunction = () => {
   return [{ title: "Recipe" }];
 };
@@ -13,6 +15,7 @@ export default function Recipe() {
 
   return (
     <div className="relative p-12 max-w-[800px] mx-auto gap-4 flex flex-col">
+      <BackButton />
       <h1 className="text-xl font-bold">{slug}</h1>
       <ul
         className="relative p-1 flex flex-wrap list-none rounded-lg bg-gray-100 justify-center"
