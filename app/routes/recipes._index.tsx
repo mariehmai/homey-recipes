@@ -37,7 +37,10 @@ export default function Recipes() {
       <div className="flex gap-2 flex-wrap justify-center">
         <h2 className="font-bold">{t("categoryFilter")}:</h2>
         <button
-          className={clsx(tagStyle, `bg-black`)}
+          className={clsx(
+            tagStyle,
+            searchParams.get("category") ? "bg-amber-400" : `bg-black`
+          )}
           onClick={() => setSearchParams()}
         >
           All
@@ -45,7 +48,9 @@ export default function Recipes() {
         {tagsProps.map((t) => (
           <button
             key={t.name}
-            className={clsx(tagStyle, "bg-amber-400")}
+            className={clsx(tagStyle, "bg-amber-400", {
+              "bg-black": searchParams.get("category") === t.name,
+            })}
             onClick={() => selectCategory(t.name)}
           >
             {t.name}
