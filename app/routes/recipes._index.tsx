@@ -2,6 +2,7 @@ import type { MetaFunction } from "@remix-run/node";
 import { useNavigate, useSearchParams } from "@remix-run/react";
 import clsx from "clsx";
 import { FunctionComponent } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Recipe, recipes as recipesMock, Tag } from "~/utils/recipes";
 
@@ -14,6 +15,7 @@ export const meta: MetaFunction = () => {
 
 export default function Recipes() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const recipes = searchParams.get("category")
@@ -31,9 +33,9 @@ export default function Recipes() {
 
   return (
     <div className="flex flex-col gap-12 p-4 sm:p-12">
-      <h1 className="text-4xl">Our recipes</h1>
+      <h1 className="text-4xl">{t("recipesPageTitle")}</h1>
       <div className="flex gap-2 flex-wrap justify-center">
-        <h2 className="font-bold">Category filter:</h2>
+        <h2 className="font-bold">{t("categoryFilter")}:</h2>
         <button
           className={clsx(tagStyle, `bg-black`)}
           onClick={() => setSearchParams()}

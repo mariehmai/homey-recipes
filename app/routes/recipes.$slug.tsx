@@ -2,6 +2,7 @@ import type { MetaFunction } from "@remix-run/node";
 import { useParams } from "@remix-run/react";
 import clsx from "clsx";
 import { FunctionComponent, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
 import { recipes } from "~/utils/recipes";
@@ -12,6 +13,7 @@ export const meta: MetaFunction = () => {
 
 export default function Recipe() {
   const { slug } = useParams();
+  const { t } = useTranslation();
   const recipe = recipes.find((r) => r.slug === slug);
   const [selectedTab, setSelectedTab] = useState("ingredients");
   const [checkedIngredients, setCheckedIngredients] = useState<string[]>([]);
@@ -118,12 +120,12 @@ export default function Recipe() {
       >
         <Tab
           isSelected={selectedTab === "ingredients"}
-          label="Ingredients"
+          label={t("ingredients")}
           onClick={() => setSelectedTab("ingredients")}
         />
         <Tab
           isSelected={selectedTab === "instructions"}
-          label="Instructions"
+          label={t("instructions")}
           onClick={() => setSelectedTab("instructions")}
         />
       </ul>
