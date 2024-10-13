@@ -126,7 +126,7 @@ const Recipe: FunctionComponent<RecipeProps> = ({
     <li className="w-full md:max-w-sm rounded-xl overflow-hidden shadow-lg">
       <button
         className={clsx(
-          `w-full text-start px-6 py-4 h-[120px]")] bg-[url('/assets/plantains-verts-frits.jpeg')]`
+          `w-full text-start px-6 py-4 h-[120px]")] bg-[url('/assets/${slug}.jpeg')]`
         )}
         onClick={() => goToRecipe(slug)}
       >
