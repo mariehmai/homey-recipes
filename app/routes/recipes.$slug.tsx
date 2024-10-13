@@ -49,6 +49,7 @@ export default function Recipe() {
                       );
                     }
                   }}
+                  checked={checkedIngredients.includes(i.name)}
                 />
                 <label
                   className={clsx("text-lg", {
@@ -86,6 +87,7 @@ export default function Recipe() {
                         );
                       }
                     }}
+                    checked={checkedInstructions.includes(sortaId)}
                   />
                   <label
                     className={clsx("text-lg", {
