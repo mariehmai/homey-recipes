@@ -6,5 +6,13 @@
   "instructions": "Instructions",
   "navRecipes": "Recettes",
   "recipesPageTitle": "Nos recettes",
-  "searchRecipes": "Chercher une recette..."
+  "searchRecipes": "Chercher une recette...",
+  "tagSweet": "sucré",
+  "tagDessert": "dessert",
+  "tagSavory": "salé",
+  "tagBbq": "bbq",
+  "tagSoup": "soupe",
+  "tagQuick": "rapide",
+  "tagSpicy": "piquant",
+  "tagAppetizer": "appéritif"
 }

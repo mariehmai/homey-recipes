@@ -217,7 +217,7 @@ export const recipes = [
         description: `Éteindre le feu et finir en ajoutant la coriandre. Goûter et ajuster en fonction (toujours plus de poivreeeee).`,
       },
     ],
-    tags: ["savory"],
+    tags: ["savory", "soup"],
   },
   {
     slug: `pancake-a-la-banane`,

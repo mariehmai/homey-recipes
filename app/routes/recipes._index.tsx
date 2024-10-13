@@ -1,6 +1,7 @@
 import type { MetaFunction } from "@remix-run/node";
 import { useNavigate, useSearchParams } from "@remix-run/react";
 import clsx from "clsx";
+import { TFunction } from "i18next";
 import { FunctionComponent } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +9,12 @@ import { Recipe, recipes as recipesMock, Tag } from "~/utils/recipes";
 
 const tagStyle =
   "rounded-full px-3 py-1 text-xs font-semibold text-white mr-2 mb-2 hover:shadow-md hover:opacity-80";
+
+String.prototype.toProperCase = function () {
+  return this.replace(/\w\S*/g, function (txt) {
+    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+  });
+};
 
 export const meta: MetaFunction = () => {
   return [{ title: "Recipes" }];
@@ -45,15 +52,15 @@ export default function Recipes() {
         >
           All
         </button>
-        {tagsProps.map((t) => (
+        {tagsProps.map((tag) => (
           <button
-            key={t.name}
+            key={tag.name}
             className={clsx(tagStyle, "bg-amber-400", {
-              "bg-black": searchParams.get("category") === t.name,
+              "bg-black": searchParams.get("category") === tag.name,
             })}
-            onClick={() => selectCategory(t.name)}
+            onClick={() => selectCategory(tag.name)}
           >
-            {t.name}
+            {t(`tag${tag.name.toProperCase()}`)}
           </button>
         ))}
       </div>
@@ -65,6 +72,7 @@ export default function Recipes() {
             {...r}
             goToRecipe={(slug: string) => navigate(`/recipes/${slug}`)}
             selectCategory={selectCategory}
+            t={t}
           />
         ))}
       </ul>
@@ -89,6 +97,7 @@ const tagsProps = [
 type RecipeProps = Recipe & {
   goToRecipe: (slug: string) => void;
   selectCategory: (category: Tag) => void;
+  t: TFunction<"translation", undefined>;
 };
 
 const RecipeCard: FunctionComponent<RecipeProps> = ({
@@ -99,6 +108,7 @@ const RecipeCard: FunctionComponent<RecipeProps> = ({
   tags,
   goToRecipe,
   selectCategory,
+  t,
 }) => {
   return (
     <li className="w-full md:max-w-sm rounded-xl overflow-hidden shadow-lg">
@@ -126,13 +136,13 @@ const RecipeCard: FunctionComponent<RecipeProps> = ({
       <div className="px-6 pt-4 pb-2">
         <p className="text-gray-700 text-sm line-clamp-4 pb-4">{summary}</p>
         {tags.length > 0 &&
-          tags.map((t) => (
+          tags.map((tag) => (
             <button
-              key={`${title}-${t}`}
+              key={`${title}-${tag}`}
               className={clsx(tagStyle, "bg-amber-400")}
-              onClick={() => selectCategory(t)}
+              onClick={() => selectCategory(tag)}
             >
-              #{t}
+              #{t(`tag${tag.toProperCase()}`)}
             </button>
           ))}
       </div>
