@@ -107,6 +107,11 @@ export default function Recipe() {
     <div className="relative p-4 max-w-[800px] mx-auto gap-4 flex flex-col">
       <BackButton />
       <h1 className="text-xl font-bold">{recipe.title}</h1>
+      <img
+        className={`max-h-[400px] object-contain`}
+        src={`/assets/${recipe.slug}.jpeg`}
+        alt=""
+      />
       <ul
         className="relative p-1 flex flex-wrap list-none rounded-lg bg-gray-100 justify-center"
         data-tabs="tabs"

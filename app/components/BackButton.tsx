@@ -9,7 +9,7 @@ export const BackButton: FunctionComponent<{ label?: string }> = ({
 
   return (
     <button
-      className="flex items-center text-start text-sm w-fit pr-2 rounded-xl border border-slate-800 hover:shadow-sm"
+      className="flex items-center text-start text-sm text-slate-800 w-fit pr-2 rounded-xl border border-slate-800 hover:shadow-md hover:opacity-70"
       onClick={() => navigate(-1)}
     >
       <RiArrowLeftSLine size={22} />
