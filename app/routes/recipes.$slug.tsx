@@ -109,7 +109,7 @@ export default function Recipe() {
     <div className="relative p-4 max-w-[900px] mx-auto gap-4 flex flex-col">
       <BackButton />
       <h1 className="text-xl font-bold">{recipe.title}</h1>
-      <div className="flex justify-start gap-8">
+      <div className="flex flex-col-reverse sm:flex-row justify-start gap-8">
         <div className="flex flex-col gap-4 flex-[3]">
           <ul
             className="relative p-1 flex flex-wrap list-none rounded-lg bg-gray-100 justify-center"

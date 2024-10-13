@@ -132,6 +132,94 @@ export const recipes = [
     tags: ["savory", "quick"],
   },
   {
+    slug: `poulet-curry-jaune`,
+    title: `Poulet au curry jaune`,
+    summary: ``,
+    ingredients: [
+      {
+        unit: "tsp",
+        quantity: "2",
+        name: "poivre blanc",
+      },
+    ],
+    time: {
+      min: 10,
+      max: 20,
+    },
+    instructions: [
+      {
+        description: `Éteindre le feu et finir en ajoutant la coriandre. Goûter et ajuster en fonction (toujours plus de poivreeeee).`,
+      },
+    ],
+    tags: ["savory", "quick"],
+  },
+  {
+    slug: `spaghetti bolo`,
+    title: `Spaghetti bolo`,
+    summary: ``,
+    ingredients: [
+      {
+        unit: "tsp",
+        quantity: "2",
+        name: "poivre blanc",
+      },
+    ],
+    time: {
+      min: 10,
+      max: 20,
+    },
+    instructions: [
+      {
+        description: `Éteindre le feu et finir en ajoutant la coriandre. Goûter et ajuster en fonction (toujours plus de poivreeeee).`,
+      },
+    ],
+    tags: ["savory", "quick"],
+  },
+  {
+    slug: `nems`,
+    title: `Nems`,
+    summary: `Nems vietnamiens`,
+    ingredients: [
+      {
+        unit: "tsp",
+        quantity: "2",
+        name: "poivre blanc",
+      },
+    ],
+    time: {
+      min: 10,
+      max: 20,
+    },
+    instructions: [
+      {
+        description: `Éteindre le feu et finir en ajoutant la coriandre. Goûter et ajuster en fonction (toujours plus de poivreeeee).`,
+      },
+    ],
+    tags: ["savory", "quick"],
+  },
+  {
+    slug: `pho`,
+    title: `Pho`,
+    summary: `Bouillon de boeuf vietnamien avec nouilles de riz`,
+    ingredients: [
+      {
+        unit: "tsp",
+        quantity: "2",
+        name: "poivre blanc",
+      },
+    ],
+    time: {
+      min: 10,
+      max: 20,
+    },
+    instructions: [
+      {
+        description: `Éteindre le feu et finir en ajoutant la coriandre. Goûter et ajuster en fonction (toujours plus de poivreeeee).`,
+      },
+    ],
+    tags: ["savory"],
+  },
+  {
     slug: `pancake-a-la-banane`,
     title: `Pancake à la banane`,
     summary: `Lorem ipsum dolor sit amet, consectetur adipisicing elit.
