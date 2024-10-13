@@ -114,7 +114,7 @@ const RecipeCard: FunctionComponent<RecipeProps> = ({
         <p className="text-gray-700 text-sm line-clamp-4">
           <mark className="text-zinc-200 bg-zinc-900 bg-opacity-50">
             {time.min}
-            {time.max && `- ${time.max}min`}
+            {time.max && `-${time.max}min`}
           </mark>
         </p>
       </button>
