@@ -6,15 +6,10 @@ import { FunctionComponent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Recipe, recipes as recipesMock, Tag } from "~/utils/recipes";
+import { toTitleCase } from "~/utils/stringExtensions";
 
 const tagStyle =
   "rounded-full px-3 py-1 text-xs font-semibold text-white mr-2 mb-2 hover:shadow-md hover:opacity-80";
-
-String.prototype.toProperCase = function () {
-  return this.replace(/\w\S*/g, function (txt) {
-    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-  });
-};
 
 export const meta: MetaFunction = () => {
   return [{ title: "Recipes" }];
@@ -60,7 +55,7 @@ export default function Recipes() {
             })}
             onClick={() => selectCategory(tag.name)}
           >
-            {t(`tag${tag.name.toProperCase()}`)}
+            {t(`tag${toTitleCase(tag.name)}`)}
           </button>
         ))}
       </div>
@@ -142,7 +137,7 @@ const RecipeCard: FunctionComponent<RecipeProps> = ({
               className={clsx(tagStyle, "bg-amber-400")}
               onClick={() => selectCategory(tag)}
             >
-              #{t(`tag${tag.toProperCase()}`)}
+              #{t(`tag${toTitleCase(tag)}`)}
             </button>
           ))}
       </div>
