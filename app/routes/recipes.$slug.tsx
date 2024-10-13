@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { FunctionComponent, useState } from "react";
 
 import { BackButton } from "~/components/BackButton";
+import { recipes } from "~/utils/recipes";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Recipe" }];
@@ -11,12 +12,101 @@ export const meta: MetaFunction = () => {
 
 export default function Recipe() {
   const { slug } = useParams();
+  const recipe = recipes.find((r) => r.slug === slug);
   const [selectedTab, setSelectedTab] = useState("ingredients");
+  const [checkedIngredients, setCheckedIngredients] = useState<string[]>([]);
+  const [checkedInstructions, setCheckedInstructions] = useState<string[]>([]);
+
+  if (!recipe) return null;
+
+  function tabContent() {
+    if (!recipe) return null;
+
+    switch (selectedTab) {
+      case "ingredients":
+        return (
+          <ul>
+            {recipe.ingredients.map((i, idx) => (
+              <li key={idx} className="flex gap-4 items-center">
+                <input
+                  className="accent-amber-400"
+                  id={i.name}
+                  type="checkbox"
+                  name={i.name}
+                  onChange={(e) => {
+                    if (e.currentTarget.checked) {
+                      setCheckedIngredients([
+                        ...checkedIngredients,
+                        e.currentTarget.name,
+                      ]);
+                    } else {
+                      setCheckedIngredients(
+                        checkedIngredients.filter(
+                          (ing) => ing !== e.currentTarget.name
+                        )
+                      );
+                    }
+                  }}
+                />
+                <label
+                  className={clsx("text-lg", {
+                    "line-through": checkedIngredients.includes(i.name),
+                  })}
+                  htmlFor={i.name}
+                >{`${i.quantity} ${i.unit} ${i.name}`}</label>
+              </li>
+            ))}
+          </ul>
+        );
+      case "instructions":
+        return (
+          <ul>
+            {recipe.instructions.map((i, idx) => {
+              const sortaId = idx.toString();
+              return (
+                <li key={sortaId} className="flex gap-4 items-center">
+                  <input
+                    className="accent-amber-400"
+                    id={sortaId}
+                    type="checkbox"
+                    name={sortaId}
+                    onChange={(e) => {
+                      if (e.currentTarget.checked) {
+                        setCheckedInstructions([
+                          ...checkedInstructions,
+                          e.currentTarget.name,
+                        ]);
+                      } else {
+                        setCheckedInstructions(
+                          checkedInstructions.filter(
+                            (ing) => ing !== e.currentTarget.name
+                          )
+                        );
+                      }
+                    }}
+                  />
+                  <label
+                    className={clsx("text-lg", {
+                      "line-through": checkedInstructions.includes(sortaId),
+                    })}
+                    htmlFor={sortaId}
+                  >
+                    {i.description}
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        );
+      default:
+        return null;
+    }
+  }
 
   return (
-    <div className="relative p-12 max-w-[800px] mx-auto gap-4 flex flex-col">
+    <div className="relative p-4 max-w-[800px] mx-auto gap-4 flex flex-col">
       <BackButton />
-      <h1 className="text-xl font-bold">{slug}</h1>
+      <h1 className="text-xl font-bold">{recipe.title}</h1>
       <ul
         className="relative p-1 flex flex-wrap list-none rounded-lg bg-gray-100 justify-center"
         data-tabs="tabs"
@@ -32,6 +122,7 @@ export default function Recipe() {
           onClick={() => setSelectedTab("instructions")}
         />
       </ul>
+      {tabContent()}
     </div>
   );
 }

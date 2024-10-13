@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "@remix-run/react";
 import clsx from "clsx";
 import { FunctionComponent } from "react";
 
+import { Recipe, recipes as recipesMock, Tag } from "~/utils/recipes";
+
 const tagStyle =
   "rounded-full px-3 py-1 text-xs font-semibold text-white mr-2 mb-2 hover:shadow-md hover:opacity-80";
 
@@ -28,7 +30,7 @@ export default function Recipes() {
   }
 
   return (
-    <div className="flex flex-col gap-12 p-12">
+    <div className="flex flex-col gap-12 p-4 sm:p-12">
       <h1 className="text-4xl">Our recipes</h1>
       <div className="flex gap-2 flex-wrap justify-center">
         <h2 className="font-bold">Category filter:</h2>
@@ -51,7 +53,7 @@ export default function Recipes() {
 
       <ul className="flex justify-center flex-wrap gap-10">
         {recipes.map((r) => (
-          <Recipe
+          <RecipeCard
             key={r.slug}
             {...r}
             goToRecipe={(slug: string) => navigate(`/recipes/${slug}`)}
@@ -77,43 +79,12 @@ const tagsProps = [
   color: string;
 }[];
 
-type Tag =
-  | "sweet"
-  | "dessert"
-  | "savory"
-  | "bbq"
-  | "soup"
-  | "quick"
-  | "spicy"
-  | "appetizer";
-
-type Ingredient = {
-  unit: "n" | "g" | "mL";
-  name: string;
-  quantity: string | number;
-};
-
-type Time = {
-  min: number;
-  max?: number;
-};
-
-type Recipe = {
-  slug: string;
-  title: string;
-  summary: string;
-  time?: Time;
-  instructions: string[];
-  ingredients: Ingredient[];
-  tags: Tag[];
-};
-
 type RecipeProps = Recipe & {
   goToRecipe: (slug: string) => void;
   selectCategory: (category: Tag) => void;
 };
 
-const Recipe: FunctionComponent<RecipeProps> = ({
+const RecipeCard: FunctionComponent<RecipeProps> = ({
   slug,
   title,
   summary,
@@ -160,94 +131,3 @@ const Recipe: FunctionComponent<RecipeProps> = ({
     </li>
   );
 };
-
-const recipesMock = [
-  {
-    slug: `pancake-a-la-banane`,
-    title: `Pancake à la banane`,
-    summary: `Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-  Voluptatibus quia, nulla! Maiores et perferendis eaque,
-  exercitationem praesentium nihil.`,
-    ingredients: [
-      {
-        unit: "n",
-        name: "banane",
-        quantity: "4",
-      },
-      {
-        unit: "g",
-        quantity: "500",
-        name: "farine",
-      },
-    ],
-    time: {
-      min: 10,
-      max: 20,
-    },
-    instructions: [`Do this`, `Then this`],
-    tags: ["dessert", "sweet"],
-  },
-  {
-    slug: `crepes-sucrees`,
-    title: `Crêpes sucrées`,
-    summary: `Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-  Voluptatibus quia, nulla! Maiores et perferendis eaque,
-  exercitationem praesentium nihil.`,
-    ingredients: [
-      {
-        unit: "n" as const,
-        name: "banane",
-        quantity: "4",
-      },
-      {
-        unit: "g" as const,
-        quantity: "500",
-        name: "farine",
-      },
-    ],
-    instructions: [`Do this`, `Then this`],
-    tags: ["sweet", "dessert"],
-  },
-  {
-    slug: `riz-au-poulet-peruvien`,
-    title: `Riz au poulet péruvien`,
-    summary: `Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-  Voluptatibus quia, nulla! Maiores et perferendis eaque,
-  exercitationem praesentium nihil.`,
-    ingredients: [
-      {
-        unit: "n",
-        name: "banane",
-        quantity: "4",
-      },
-      {
-        unit: "g",
-        quantity: "500",
-        name: "farine",
-      },
-    ],
-    instructions: [`Do this`, `Then this`],
-    tags: ["savory", "spicy"],
-  },
-  {
-    slug: `plantains-verts-frits`,
-    title: `Plantains verts frits`,
-    summary: `Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-  Voluptatibus quia, nulla! Maiores et perferendis eaque,
-  exercitationem praesentium nihil.`,
-    ingredients: [
-      {
-        unit: "n",
-        name: "banane",
-        quantity: "4",
-      },
-      {
-        unit: "g",
-        quantity: "500",
-        name: "farine",
-      },
-    ],
-    instructions: [`Do this`, `Then this`],
-    tags: ["appetizer", "quick"],
-  },
-] satisfies Recipe[];
