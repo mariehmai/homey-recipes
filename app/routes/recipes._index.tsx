@@ -101,6 +101,7 @@ const RecipeCard: FunctionComponent<RecipeProps> = ({
         style={{
           backgroundImage: `url('/assets/${slug}.jpeg')`,
           backgroundPosition: "center",
+          backgroundSize: 400,
         }}
         className={clsx(`w-full text-start px-6 py-4 h-[120px]")]`)}
         onClick={() => goToRecipe(slug)}
