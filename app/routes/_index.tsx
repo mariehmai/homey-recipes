@@ -20,7 +20,10 @@ export default function Index() {
   const { t } = useTranslation();
   const [search, setSearch] = useState<string>("");
   const recipesFound = useMemo(
-    () => recipes.filter((r) => r.title.toLowerCase().includes(search)),
+    () =>
+      recipes.filter((r) =>
+        r.title.toLowerCase().includes(search.toLowerCase())
+      ),
     [search]
   );
 
