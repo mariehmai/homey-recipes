@@ -42,7 +42,7 @@ export default function Index() {
         <div
           id="dropdown"
           className={clsx(
-            "max-h-[250px] overflow-scroll absolute top-14 bg-white divide-y divide-slate-100 rounded-lg shadow w-44 dark:bg-slate-700",
+            "max-h-[250px] overflow-scroll absolute top-14 bg-white divide-y divide-slate-100 rounded-lg shadow w-[230px] dark:bg-slate-700",
             {
               hidden: recipesFound.length === recipes.length,
             }
