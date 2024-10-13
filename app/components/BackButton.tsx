@@ -1,11 +1,14 @@
 import { useNavigate } from "@remix-run/react";
 import { RiArrowLeftSLine } from "@remixicon/react";
 import type { FunctionComponent } from "react";
+import { useTranslation } from "react-i18next";
 
 export const BackButton: FunctionComponent<{ label?: string }> = ({
-  label = "Back",
+  label = "back",
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const backBtnLabel = t(label);
 
   return (
     <button
@@ -13,7 +16,7 @@ export const BackButton: FunctionComponent<{ label?: string }> = ({
       onClick={() => navigate(-1)}
     >
       <RiArrowLeftSLine size={22} />
-      {label}
+      {backBtnLabel}
     </button>
   );
 };

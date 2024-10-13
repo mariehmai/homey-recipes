@@ -1,9 +1,10 @@
 {
+  "appCatchPhrase": "Discover, create, and savor the perfect recipe for every occasion with – where delicious meals meet effortless cooking at home.",
   "back": "Back",
   "categoryFilter": "Category filter",
   "ingredients": "Ingredients",
   "instructions": "Instructions",
   "navRecipes": "Recipes",
   "recipesPageTitle": "Our recipes",
-  "title": "Recipes"
+  "searchRecipes": "Search recipes..."
 }

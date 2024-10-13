@@ -1,9 +1,10 @@
 {
+  "appCatchPhrase": "Découvrez, créez et savourez la recette parfaite pour chaque occasion, où des plats délicieux se marient avec une cuisine facile à préparer à la maison.",
   "back": "Retour",
   "categoryFilter": "Filtre de catégorie",
   "ingredients": "Ingrédients",
   "instructions": "Instructions",
   "navRecipes": "Recettes",
   "recipesPageTitle": "Nos recettes",
-  "title": "Recettes"
+  "searchRecipes": "Chercher une recette..."
 }
