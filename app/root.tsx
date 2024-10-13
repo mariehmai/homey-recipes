@@ -49,7 +49,6 @@ export default function App() {
             </button>
             <div className="flex divide-x-2">
               <Link to={`/recipes`} label="Recipes" />
-              <Link to={`/profile`} label="Profile" />
             </div>
             <span />
           </nav>
