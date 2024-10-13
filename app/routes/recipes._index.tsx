@@ -41,7 +41,7 @@ export default function Recipes() {
         {tagsProps.map((t) => (
           <button
             key={t.name}
-            className={clsx(tagStyle, `bg-${t.color}-500`)}
+            className={clsx(tagStyle, "bg-amber-400")}
             onClick={() => selectCategory(t.name)}
           >
             {t.name}
@@ -122,10 +122,6 @@ const Recipe: FunctionComponent<RecipeProps> = ({
   goToRecipe,
   selectCategory,
 }) => {
-  const tagProps = (tag: Tag) => {
-    return tagsProps.find((t) => t.name === tag) ?? { color: "black" };
-  };
-
   return (
     <li className="w-full md:max-w-sm rounded-xl overflow-hidden shadow-lg">
       <button
@@ -152,7 +148,7 @@ const Recipe: FunctionComponent<RecipeProps> = ({
           tags.map((t) => (
             <button
               key={`${title}-${t}`}
-              className={clsx(tagStyle, `bg-${tagProps(t).color}-500`)}
+              className={clsx(tagStyle, "bg-amber-400")}
               onClick={() => selectCategory(t)}
             >
               #{t}
