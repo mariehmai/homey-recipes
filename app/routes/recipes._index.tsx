@@ -125,9 +125,11 @@ const Recipe: FunctionComponent<RecipeProps> = ({
   return (
     <li className="w-full md:max-w-sm rounded-xl overflow-hidden shadow-lg">
       <button
-        className={clsx(
-          `w-full text-start px-6 py-4 h-[120px]")] bg-[url('/assets/${slug}.jpeg')]`
-        )}
+        style={{
+          backgroundImage: `url('/assets/${slug}.jpeg')`,
+          backgroundPosition: "center",
+        }}
+        className={clsx(`w-full text-start px-6 py-4 h-[120px]")]`)}
         onClick={() => goToRecipe(slug)}
       >
         <h3 className="font-bold text-xl mb-2">
