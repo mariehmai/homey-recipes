@@ -147,7 +147,9 @@ export default function NewRecipe() {
 
   const unitOptions = [
     { value: "g", label: t("unitG") },
+    { value: "kg", label: t("unitKg") },
     { value: "mL", label: t("unitML") },
+    { value: "L", label: t("unitL") },
     { value: "tsp", label: t("unitTsp") },
     { value: "tbsp", label: t("unitTbsp") },
     { value: "cup", label: t("unitCup") },

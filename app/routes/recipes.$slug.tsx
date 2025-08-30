@@ -6,6 +6,7 @@ import { FunctionComponent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
+import { ServingCalculator } from "~/components/ServingCalculator";
 import { getRecipeBySlug } from "~/utils/recipe-storage.server";
 import type { Recipe } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
@@ -34,7 +35,9 @@ function getUnitLabels(t: (key: string) => string) {
   return {
     n: "",
     g: t("unitG"),
+    kg: t("unitKg"),
     mL: t("unitML"),
+    L: t("unitL"),
     tsp: t("unitTsp"),
     tbsp: t("unitTbsp"),
     cup: t("unitCup"),
@@ -63,6 +66,20 @@ export default function Recipe() {
     new Set()
   );
   const [isFavorite, setIsFavorite] = useState(false);
+  const [scaledIngredients, setScaledIngredients] = useState<
+    Recipe["ingredients"]
+  >(recipe.ingredients);
+  const [currentServings, setCurrentServings] = useState(recipe.servings || 4);
+
+  const handleServingsChange = (
+    newScaledIngredients: Recipe["ingredients"],
+    newServings: number
+  ) => {
+    setScaledIngredients(newScaledIngredients);
+    setCurrentServings(newServings);
+    // Clear checked ingredients when servings change
+    setCheckedIngredients(new Set());
+  };
 
   function onToggleIngredient(name: string) {
     setCheckedIngredients((prev) => {
@@ -133,7 +150,7 @@ export default function Recipe() {
       case "ingredients":
         return (
           <div className="space-y-3">
-            {recipe.ingredients.map((ingredient, idx) => (
+            {scaledIngredients.map((ingredient, idx) => (
               <button
                 key={idx}
                 className={clsx(
@@ -297,9 +314,12 @@ export default function Recipe() {
             <div className="flex items-center space-x-1 md:space-x-2">
               <span className="text-orange-500 text-base md:text-lg">👥</span>
               <span className="font-medium">
-                {recipe.servings
-                  ? `${recipe.servings} ${t("servings")}`
-                  : `4-6 ${t("servings")}`}
+                {currentServings} {t("servings")}
+                {currentServings !== (recipe.servings || 4) && (
+                  <span className="text-orange-600 dark:text-orange-400 ml-1">
+                    (scaled from {recipe.servings || 4})
+                  </span>
+                )}
               </span>
             </div>
           </div>
@@ -316,11 +336,11 @@ export default function Recipe() {
         </div>
 
         <div className="lg:grid lg:grid-cols-12 lg:gap-8">
-          <div className="lg:col-span-3 mb-6 lg:mb-0">
+          <div className="lg:col-span-3 mb-6 lg:mb-0 space-y-4">
             <div className="flex lg:flex-col bg-gray-100 dark:bg-stone-700 rounded-xl p-1 lg:space-y-1 lg:space-x-0 space-x-0">
               <Tab
                 isSelected={selectedTab === "ingredients"}
-                label={`${t("ingredients")} (${recipe.ingredients.length})`}
+                label={`${t("ingredients")} (${scaledIngredients.length})`}
                 onClick={() => setSelectedTab("ingredients")}
                 isDesktop={true}
               />
@@ -331,6 +351,11 @@ export default function Recipe() {
                 isDesktop={true}
               />
             </div>
+
+            <ServingCalculator
+              recipe={recipe}
+              onServingsChange={handleServingsChange}
+            />
           </div>
 
           <div className="lg:col-span-9">

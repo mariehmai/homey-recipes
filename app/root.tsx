@@ -190,6 +190,7 @@ export default function App() {
               <div className="hidden md:flex items-center space-x-1 bg-stone-100 dark:bg-stone-800 rounded-full p-1">
                 <Link to="/recipes" label={t("navRecipes")} />
                 <Link to="/recipes/new" label="Ajouter" />
+                <Link to="/converter" label={t("unitConverter")} />
               </div>
 
               <div className="flex items-center space-x-2">
@@ -224,6 +225,7 @@ export default function App() {
               <div className="bg-stone-100 dark:bg-stone-800 rounded-full p-1">
                 <Link to="/recipes" label={t("navRecipes")} />
                 <Link to="/recipes/new" label="Ajouter" />
+                <Link to="/converter" label={t("unitConverter")} />
               </div>
             </div>
           </div>

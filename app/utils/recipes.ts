@@ -9,7 +9,7 @@ export type Tag =
   | "appetizer";
 
 type Ingredient = {
-  unit: "n" | "g" | "mL" | "tsp" | "tbsp" | "cup";
+  unit: "n" | "g" | "kg" | "mL" | "L" | "tsp" | "tbsp" | "cup";
   name: string;
   quantity: string | number;
 };
