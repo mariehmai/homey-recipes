@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { recipes, Tag } from "~/utils/recipes";
+import { getAllRecipes, Tag } from "~/utils/recipes";
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,13 +20,14 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
+  const recipes = getAllRecipes();
 
   const recipesFound = useMemo(
     () =>
       recipes.filter((r) =>
         r.title.toLowerCase().includes(search.toLowerCase())
       ),
-    [search]
+    [search, recipes]
   );
 
   return (

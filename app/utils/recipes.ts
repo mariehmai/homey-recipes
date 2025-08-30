@@ -28,12 +28,13 @@ export type Recipe = {
   title: string;
   summary: string;
   time?: Time;
+  servings?: number;
   instructions: Instruction[];
   ingredients: Ingredient[];
   tags: Tag[];
 };
 
-export const recipes: Recipe[] = [
+const defaultRecipes: Recipe[] = [
   {
     slug: "riz-saute",
     title: "Riz Sauté",
@@ -509,3 +510,32 @@ export const recipes: Recipe[] = [
     tags: ["sweet", "dessert", "quick"],
   },
 ];
+
+export function getAllRecipes(): Recipe[] {
+  if (typeof window === "undefined") {
+    return defaultRecipes;
+  }
+
+  try {
+    const stored = localStorage.getItem("homey-custom-recipes");
+    const customRecipes = stored ? JSON.parse(stored) : [];
+    return [...defaultRecipes, ...customRecipes];
+  } catch {
+    return defaultRecipes;
+  }
+}
+
+export function saveCustomRecipe(recipe: Recipe): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    const stored = localStorage.getItem("homey-custom-recipes");
+    const customRecipes = stored ? JSON.parse(stored) : [];
+    customRecipes.push(recipe);
+    localStorage.setItem("homey-custom-recipes", JSON.stringify(customRecipes));
+  } catch (error) {
+    console.error("Failed to save recipe:", error);
+  }
+}
+
+export const recipes = getAllRecipes();

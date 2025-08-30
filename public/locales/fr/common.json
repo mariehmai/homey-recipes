@@ -32,5 +32,15 @@
   "switchToLightMode": "Passer au mode clair",
   "switchToDarkMode": "Passer au mode sombre",
   "recipePageTitle": "Recette",
-  "homeyRecipesTitle": "Homey Recipes"
+  "homeyRecipesTitle": "Homey Recipes",
+  "addNewRecipe": "Ajouter une recette",
+  "basicInformation": "Informations de base",
+  "recipeTitle": "Titre de la recette",
+  "summary": "Résumé",
+  "prepTime": "Temps de préparation",
+  "cookTime": "Temps de cuisson",
+  "addIngredient": "Ajouter un ingrédient",
+  "addStep": "Ajouter une étape",
+  "createRecipe": "Créer la recette",
+  "cancel": "Annuler"
 }

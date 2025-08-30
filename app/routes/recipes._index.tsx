@@ -2,10 +2,10 @@ import type { MetaFunction } from "@remix-run/node";
 import { useNavigate, useSearchParams } from "@remix-run/react";
 import clsx from "clsx";
 import { TFunction } from "i18next";
-import { FunctionComponent, useMemo, useState } from "react";
+import { FunctionComponent, useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Recipe, recipes, Tag } from "~/utils/recipes";
+import { Recipe, getAllRecipes, Tag } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
 
 export const meta: MetaFunction = () => {
@@ -29,6 +29,20 @@ export default function Recipes() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid");
+  const [recipes, setRecipes] = useState<Recipe[]>(() => {
+    // Initialize with default recipes for SSR, update on client side
+    if (typeof window !== "undefined") {
+      return getAllRecipes();
+    }
+    return [];
+  });
+
+  // Update recipes on client side to include custom recipes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRecipes(getAllRecipes());
+    }
+  }, []);
 
   const categories = useMemo(
     () => [
@@ -54,7 +68,7 @@ export default function Recipes() {
         count: recipes.filter((r) => r.tags.includes("soup")).length,
       },
     ],
-    [t]
+    [t, recipes]
   );
 
   const filteredRecipes = useMemo(() => {
@@ -93,20 +107,30 @@ export default function Recipes() {
     <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
       <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6">
-          <div className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-6">
-            <div className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center">
-              <span className="text-white text-lg md:text-xl lg:text-2xl">
-                🍳
-              </span>
+          <div className="flex items-center justify-between mb-4 md:mb-6">
+            <div className="flex items-center space-x-3 md:space-x-4">
+              <div className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center">
+                <span className="text-white text-lg md:text-xl lg:text-2xl">
+                  🍳
+                </span>
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                  Our recipes
+                </h1>
+                <p className="text-sm md:text-base text-gray-600 dark:text-stone-300">
+                  Découvrez notre collection
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
-                Our recipes
-              </h1>
-              <p className="text-sm md:text-base text-gray-600 dark:text-stone-300">
-                Découvrez notre collection
-              </p>
-            </div>
+
+            <a
+              href="/recipes/new"
+              className="flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm md:text-base"
+            >
+              <span className="text-lg">➕</span>
+              <span className="hidden sm:inline">{t("addNewRecipe")}</span>
+            </a>
           </div>
 
           <div className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-6">

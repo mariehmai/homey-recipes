@@ -5,7 +5,7 @@ import { FunctionComponent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
-import { recipes } from "~/utils/recipes";
+import { getAllRecipes } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
 
 export const meta: MetaFunction = () => {
@@ -37,6 +37,7 @@ const tagColors = {
 export default function Recipe() {
   const { slug } = useParams();
   const { t } = useTranslation();
+  const recipes = getAllRecipes();
   const recipe = recipes.find((r) => r.slug === slug);
   const [selectedTab, setSelectedTab] = useState("ingredients");
   const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(
@@ -281,7 +282,9 @@ export default function Recipe() {
             </div>
             <div className="flex items-center space-x-1 md:space-x-2">
               <span className="text-orange-500 text-base md:text-lg">👥</span>
-              <span className="font-medium">4-6 {t("servings")}</span>
+              <span className="font-medium">
+                {recipe.servings ? `${recipe.servings} ${t("servings")}` : `4-6 ${t("servings")}`}
+              </span>
             </div>
           </div>
 
