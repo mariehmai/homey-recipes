@@ -492,14 +492,7 @@ export default function NewRecipe() {
             </div>
           </div>
 
-          {/* Submit */}
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              className="px-6 py-3 border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-stone-300 rounded-lg hover:bg-gray-50 dark:hover:bg-stone-700 transition-colors"
-            >
-              Cancel
-            </button>
+          <div className="flex justify-end">
             <button
               type="submit"
               disabled={isSubmitting}
