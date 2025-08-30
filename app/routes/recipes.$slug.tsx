@@ -78,6 +78,38 @@ export default function Recipe() {
     return `${ingredient.quantity} ${unit}`.trim();
   }
 
+  function ProgressBar() {
+    if (selectedTab !== "instructions" || !recipe) return null;
+    
+    return (
+      <div className="mb-6 bg-white dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600 sticky top-[73px] md:top-[81px] z-40">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm md:text-base font-medium text-gray-700 dark:text-stone-300">
+            Progression
+          </span>
+          <span className="text-sm md:text-base font-bold text-orange-600">
+            {Math.round(
+              (checkedInstructions.size / recipe.instructions.length) *
+                100
+            )}
+            %
+          </span>
+        </div>
+        <div className="w-full bg-gray-200 dark:bg-stone-600 rounded-full h-2 md:h-3">
+          <div
+            className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-500"
+            style={{
+              width: `${
+                (checkedInstructions.size / recipe.instructions.length) *
+                100
+              }%`,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   function tabContent() {
     if (!recipe) return null;
 
@@ -178,32 +210,6 @@ export default function Recipe() {
                 </button>
               );
             })}
-
-            <div className="mt-6 bg-white dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm md:text-base font-medium text-gray-700 dark:text-stone-300">
-                  Progression
-                </span>
-                <span className="text-sm md:text-base font-bold text-orange-600">
-                  {Math.round(
-                    (checkedInstructions.size / recipe.instructions.length) *
-                      100
-                  )}
-                  %
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-stone-600 rounded-full h-2 md:h-3">
-                <div
-                  className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${
-                      (checkedInstructions.size / recipe.instructions.length) *
-                      100
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
           </div>
         );
 
@@ -306,6 +312,7 @@ export default function Recipe() {
           </div>
 
           <div className="lg:col-span-9">
+            <ProgressBar />
             <div className="pb-6">{tabContent()}</div>
           </div>
         </div>
