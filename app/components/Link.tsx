@@ -10,8 +10,8 @@ export const Link: FunctionComponent<{
     <NavLink
       to={to}
       className={({ isActive }) =>
-        clsx("px-4 hover:underline tracking-widest font-semibold", {
-          "underline text-amber-400 cursor-default": isActive,
+        clsx("px-4 hover:underline tracking-widest font-semibold text-stone-700 dark:text-stone-300", {
+          "underline text-amber-400 dark:text-amber-400 cursor-default": isActive,
         })
       }
     >

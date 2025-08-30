@@ -88,11 +88,9 @@ export default function Recipes() {
   const selectedCategory = searchParams.get("category") || "all";
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header with max-width centering */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
+      <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6">
-          {/* Title Section */}
           <div className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-6">
             <div className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center">
               <span className="text-white text-lg md:text-xl lg:text-2xl">
@@ -100,16 +98,15 @@ export default function Recipes() {
               </span>
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
                 Our recipes
               </h1>
-              <p className="text-sm md:text-base text-gray-600">
+              <p className="text-sm md:text-base text-gray-600 dark:text-stone-300">
                 Découvrez notre collection
               </p>
             </div>
           </div>
 
-          {/* Search and View Toggle */}
           <div className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-6">
             <div className="flex-1 relative max-w-md">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -120,18 +117,18 @@ export default function Recipes() {
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 md:py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm md:text-base transition-all"
+                className="w-full pl-10 pr-4 py-2 md:py-3 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm md:text-base transition-all"
               />
             </div>
 
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-gray-100 dark:bg-stone-700 rounded-lg p-1">
               <button
                 onClick={() => setViewMode("grid")}
                 className={clsx(
                   "p-2 md:p-3 rounded-md transition-all hover:scale-105",
                   viewMode === "grid"
-                    ? "bg-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-white dark:bg-stone-600 shadow-sm"
+                    : "text-gray-500 dark:text-stone-300 hover:text-gray-700 dark:hover:text-stone-200"
                 )}
               >
                 <span className="text-base md:text-lg">⊞</span>
@@ -141,8 +138,8 @@ export default function Recipes() {
                 className={clsx(
                   "p-2 md:p-3 rounded-md transition-all hover:scale-105",
                   viewMode === "list"
-                    ? "bg-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-white dark:bg-stone-600 shadow-sm"
+                    : "text-gray-500 dark:text-stone-300 hover:text-gray-700 dark:hover:text-stone-200"
                 )}
               >
                 <span className="text-base md:text-lg">☰</span>
@@ -150,18 +147,16 @@ export default function Recipes() {
             </div>
           </div>
 
-          {/* Category Filter Header */}
           <div className="flex items-center justify-between mb-3 md:mb-4">
-            <h2 className="font-bold text-gray-900 text-sm md:text-base">
+            <h2 className="font-bold text-gray-900 dark:text-white text-sm md:text-base">
               {t("categoryFilter")}:
             </h2>
-            <div className="flex items-center space-x-1 text-sm md:text-base text-gray-500">
+            <div className="flex items-center space-x-1 text-sm md:text-base text-gray-500 dark:text-stone-300">
               <span>🔍</span>
               <span>{filteredRecipes.length} recettes</span>
             </div>
           </div>
 
-          {/* Category Buttons - Responsive grid on desktop */}
           <div className="flex lg:grid lg:grid-cols-6 gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-hide">
             <button
               onClick={() => selectCategory("all")}
@@ -169,7 +164,7 @@ export default function Recipes() {
                 "flex-shrink-0 lg:flex-shrink px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105",
                 selectedCategory === "all"
                   ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
-                  : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                  : "bg-white dark:bg-stone-800 text-gray-700 dark:text-stone-200 border border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 hover:shadow-sm"
               )}
             >
               Toutes
@@ -186,7 +181,7 @@ export default function Recipes() {
                   "flex-shrink-0 lg:flex-shrink px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105",
                   selectedCategory === category.id
                     ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
-                    : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                    : "bg-white dark:bg-stone-800 text-gray-700 dark:text-stone-200 border border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 hover:shadow-sm"
                 )}
               >
                 {category.name}
@@ -199,7 +194,6 @@ export default function Recipes() {
         </div>
       </header>
 
-      {/* Results with max-width centering */}
       <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
         {viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
@@ -227,16 +221,15 @@ export default function Recipes() {
           </div>
         )}
 
-        {/* No Results */}
         {filteredRecipes.length === 0 && (
           <div className="text-center py-16 md:py-24">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 dark:bg-stone-700 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
               <span className="text-2xl md:text-3xl">🔍</span>
             </div>
-            <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
               Aucune recette trouvée
             </h3>
-            <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">
+            <p className="text-gray-600 dark:text-stone-300 mb-4 md:mb-6 text-sm md:text-base">
               Essayez de modifier votre recherche
             </p>
             <button
@@ -262,7 +255,7 @@ const RecipeCard: FunctionComponent<{
   t: TFunction<"translation", undefined>;
 }> = ({ recipe, onRecipeClick, formatTime, t }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-left group relative">
+    <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-left group relative">
       <button
         className="absolute inset-0 z-10 cursor-pointer"
         onClick={onRecipeClick}
@@ -297,10 +290,10 @@ const RecipeCard: FunctionComponent<{
       </div>
 
       <div className="p-4 md:p-5 lg:p-6">
-        <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-3 group-hover:text-orange-600 transition-colors">
+        <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-2 md:mb-3 group-hover:text-orange-600 transition-colors">
           {recipe.title}
         </h3>
-        <p className="text-gray-600 text-sm md:text-base line-clamp-2 mb-4 leading-relaxed">
+        <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-4 leading-relaxed">
           {recipe.summary}
         </p>
 
@@ -327,7 +320,7 @@ const RecipeListItem: FunctionComponent<{
 }> = ({ recipe, onRecipeClick, formatTime, t }) => {
   return (
     <button
-      className="w-full bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-left group"
+      className="w-full bg-white dark:bg-stone-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-stone-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-left group"
       onClick={onRecipeClick}
     >
       <div className="flex space-x-4 md:space-x-6">
@@ -342,15 +335,15 @@ const RecipeListItem: FunctionComponent<{
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-gray-900 mb-1 md:mb-2 text-base md:text-lg lg:text-xl leading-tight group-hover:text-orange-600 transition-colors">
+          <h3 className="font-bold text-gray-900 dark:text-white mb-1 md:mb-2 text-base md:text-lg lg:text-xl leading-tight group-hover:text-orange-600 transition-colors">
             {recipe.title}
           </h3>
-          <p className="text-gray-600 text-sm md:text-base line-clamp-2 mb-2 md:mb-3 leading-relaxed">
+          <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-2 md:mb-3 leading-relaxed">
             {recipe.summary}
           </p>
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 text-xs md:text-sm text-gray-500">
+            <div className="flex items-center space-x-3 text-xs md:text-sm text-gray-500 dark:text-stone-400">
               <div className="flex items-center space-x-1">
                 <span className="text-orange-500">⏱️</span>
                 <span className="font-medium">{formatTime(recipe.time)}</span>

@@ -91,8 +91,8 @@ export default function Recipe() {
                 className={clsx(
                   "flex items-center space-x-3 p-3 md:p-4 rounded-lg border cursor-pointer transition-all w-full text-left",
                   checkedIngredients.has(ingredient.name)
-                    ? "bg-green-50 border-green-200"
-                    : "bg-white border-gray-200 hover:bg-gray-50 active:bg-gray-50"
+                    ? "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700"
+                    : "bg-white dark:bg-stone-800 border-gray-200 dark:border-stone-600 hover:bg-gray-50 dark:hover:bg-stone-700 active:bg-gray-50 dark:active:bg-stone-700"
                 )}
                 onClick={() => onToggleIngredient(ingredient.name)}
               >
@@ -100,8 +100,8 @@ export default function Recipe() {
                   className={clsx(
                     "w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0",
                     checkedIngredients.has(ingredient.name)
-                      ? "bg-green-500 border-green-500"
-                      : "border-gray-300"
+                      ? "bg-green-500 dark:bg-green-600 border-green-500 dark:border-green-600"
+                      : "border-gray-300 dark:border-stone-500"
                   )}
                 >
                   {checkedIngredients.has(ingredient.name) && (
@@ -114,8 +114,8 @@ export default function Recipe() {
                     className={clsx(
                       "font-medium text-sm md:text-base transition-all",
                       checkedIngredients.has(ingredient.name)
-                        ? "text-green-700 line-through"
-                        : "text-gray-900"
+                        ? "text-green-700 dark:text-green-400 line-through"
+                        : "text-gray-900 dark:text-white"
                     )}
                   >
                     {formatQuantity(ingredient)}
@@ -124,8 +124,8 @@ export default function Recipe() {
                     className={clsx(
                       "text-xs md:text-sm transition-all",
                       checkedIngredients.has(ingredient.name)
-                        ? "text-green-600 line-through"
-                        : "text-gray-600"
+                        ? "text-green-600 dark:text-green-400 line-through"
+                        : "text-gray-600 dark:text-stone-300"
                     )}
                   >
                     {ingredient.name}
@@ -147,8 +147,8 @@ export default function Recipe() {
                   className={clsx(
                     "flex space-x-4 p-4 md:p-6 rounded-lg border cursor-pointer transition-all w-full text-left",
                     checkedInstructions.has(stepId)
-                      ? "bg-green-50 border-green-200"
-                      : "bg-white border-gray-200 hover:bg-gray-50 active:bg-gray-50"
+                      ? "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700"
+                      : "bg-white dark:bg-stone-800 border-gray-200 dark:border-stone-600 hover:bg-gray-50 dark:hover:bg-stone-700 active:bg-gray-50 dark:active:bg-stone-700"
                   )}
                   onClick={() => onToggleInstruction(stepId)}
                 >
@@ -168,8 +168,8 @@ export default function Recipe() {
                       className={clsx(
                         "text-sm md:text-base leading-relaxed transition-all",
                         checkedInstructions.has(stepId)
-                          ? "text-green-700 line-through"
-                          : "text-gray-900"
+                          ? "text-green-700 dark:text-green-400 line-through"
+                          : "text-gray-900 dark:text-white"
                       )}
                     >
                       {instruction.description}
@@ -179,9 +179,9 @@ export default function Recipe() {
               );
             })}
 
-            <div className="mt-6 bg-white rounded-lg p-4 md:p-6 border border-gray-200">
+            <div className="mt-6 bg-white dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm md:text-base font-medium text-gray-700">
+                <span className="text-sm md:text-base font-medium text-gray-700 dark:text-stone-300">
                   Progression
                 </span>
                 <span className="text-sm md:text-base font-bold text-orange-600">
@@ -192,7 +192,7 @@ export default function Recipe() {
                   %
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 md:h-3">
+              <div className="w-full bg-gray-200 dark:bg-stone-600 rounded-full h-2 md:h-3">
                 <div
                   className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-500"
                   style={{
@@ -213,8 +213,8 @@ export default function Recipe() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
+      <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <BackButton />
@@ -224,14 +224,14 @@ export default function Recipe() {
                 onClick={() => setIsFavorite(!isFavorite)}
                 className={clsx(
                   "p-2 md:p-3 rounded-full transition-all hover:scale-105",
-                  isFavorite ? "bg-red-100" : "bg-gray-100 hover:bg-gray-200"
+                  isFavorite ? "bg-red-100 dark:bg-red-900" : "bg-gray-100 dark:bg-stone-800 hover:bg-gray-200 dark:hover:bg-stone-700"
                 )}
               >
                 <span className="text-lg md:text-xl">
                   {isFavorite ? "❤️" : "🤍"}
                 </span>
               </button>
-              <button className="p-2 md:p-3 rounded-full bg-gray-100 transition-all hover:bg-gray-200 hover:scale-105">
+              <button className="p-2 md:p-3 rounded-full bg-gray-100 dark:bg-stone-800 transition-all hover:bg-gray-200 dark:hover:bg-stone-700 hover:scale-105">
                 <span className="text-base md:text-lg">📤</span>
               </button>
             </div>
@@ -252,15 +252,15 @@ export default function Recipe() {
             ))}
           </div>
 
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4 leading-tight">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4 leading-tight">
             {recipe.title}
           </h1>
 
-          <p className="text-gray-600 mb-4 md:mb-6 leading-relaxed text-sm md:text-base lg:text-lg">
+          <p className="text-gray-600 dark:text-stone-300 mb-4 md:mb-6 leading-relaxed text-sm md:text-base lg:text-lg">
             {recipe.summary}
           </p>
 
-          <div className="flex items-center space-x-4 md:space-x-6 text-sm md:text-base text-gray-500 mb-6 md:mb-8">
+          <div className="flex items-center space-x-4 md:space-x-6 text-sm md:text-base text-gray-500 dark:text-stone-400 mb-6 md:mb-8">
             <div className="flex items-center space-x-1 md:space-x-2">
               <span className="text-orange-500 text-base md:text-lg">⏱️</span>
               <span className="font-medium">
@@ -289,7 +289,7 @@ export default function Recipe() {
 
         <div className="lg:grid lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-3 mb-6 lg:mb-0">
-            <div className="flex lg:flex-col bg-gray-100 rounded-xl p-1 lg:space-y-1 lg:space-x-0 space-x-0">
+            <div className="flex lg:flex-col bg-gray-100 dark:bg-stone-700 rounded-xl p-1 lg:space-y-1 lg:space-x-0 space-x-0">
               <Tab
                 isSelected={selectedTab === "ingredients"}
                 label={`${t("ingredients")} (${recipe.ingredients.length})`}
@@ -325,8 +325,8 @@ const Tab: FunctionComponent<{
       className={clsx(
         "py-3 px-4 md:py-4 md:px-6 rounded-lg font-medium transition-all text-sm md:text-base text-center lg:text-left lg:w-full",
         {
-          "bg-white text-gray-900 shadow-sm": isSelected,
-          "text-gray-600 hover:text-gray-800 hover:bg-gray-50": !isSelected,
+          "bg-white dark:bg-stone-600 text-gray-900 dark:text-white shadow-sm": isSelected,
+          "text-gray-600 dark:text-stone-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-stone-600": !isSelected,
           "flex-1": !isDesktop,
         }
       )}
