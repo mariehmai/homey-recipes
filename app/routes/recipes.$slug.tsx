@@ -12,14 +12,16 @@ export const meta: MetaFunction = () => {
   return [{ title: "Recipe" }];
 };
 
-const unitLabels = {
-  n: "",
-  g: "g",
-  mL: "mL",
-  tsp: "c. à thé",
-  tbsp: "c. à soupe",
-  cup: "tasse",
-};
+function getUnitLabels(t: (key: string) => string) {
+  return {
+    n: "",
+    g: t("unitG"),
+    mL: t("unitML"),
+    tsp: t("unitTsp"),
+    tbsp: t("unitTbsp"),
+    cup: t("unitCup"),
+  };
+}
 
 const tagColors = {
   sweet: "bg-pink-500",
@@ -74,6 +76,7 @@ export default function Recipe() {
   type NewType = typeof recipe.ingredients;
 
   function formatQuantity(ingredient: NewType[0]) {
+    const unitLabels = getUnitLabels(t);
     const unit = unitLabels[ingredient.unit] || ingredient.unit;
     return `${ingredient.quantity} ${unit}`.trim();
   }
@@ -85,7 +88,7 @@ export default function Recipe() {
       <div className="mb-6 bg-white dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600 sticky top-[73px] md:top-[81px] z-40">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm md:text-base font-medium text-gray-700 dark:text-stone-300">
-            Progression
+            {t("progression")}
           </span>
           <span className="text-sm md:text-base font-bold text-orange-600">
             {Math.round(
@@ -273,12 +276,12 @@ export default function Recipe() {
                 {recipe.time?.max
                   ? `${recipe.time.min}-${recipe.time.max}`
                   : recipe.time?.min}{" "}
-                min
+                {t("minutes")}
               </span>
             </div>
             <div className="flex items-center space-x-1 md:space-x-2">
               <span className="text-orange-500 text-base md:text-lg">👥</span>
-              <span className="font-medium">4-6 personnes</span>
+              <span className="font-medium">4-6 {t("servings")}</span>
             </div>
           </div>
 

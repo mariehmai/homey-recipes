@@ -162,7 +162,7 @@ export default function Index() {
                         {recipe.time?.max
                           ? `${recipe.time.min}-${recipe.time.max}`
                           : recipe.time?.min}{" "}
-                        min
+                        {t("minutes")}
                       </span>
                     </div>
                   </div>
@@ -200,49 +200,49 @@ export default function Index() {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4 md:gap-6">
             {[
               {
-                name: "Rapide",
+                name: t("categoryQuick"),
                 icon: "⚡",
                 color: "from-emerald-400 to-green-500",
                 tag: "quick",
               },
               {
-                name: "Sucré",
+                name: t("categorySweet"),
                 icon: "🍰",
                 color: "from-pink-400 to-rose-500",
                 tag: "sweet",
               },
               {
-                name: "Salé",
+                name: t("categorySavory"),
                 icon: "🍲",
                 color: "from-orange-400 to-red-500",
                 tag: "savory",
               },
               {
-                name: "Soupes",
+                name: t("categorySoup"),
                 icon: "🍜",
                 color: "from-blue-400 to-indigo-500",
                 tag: "soup",
               },
               {
-                name: "BBQ",
+                name: t("tagBbq"),
                 icon: "🔥",
                 color: "from-red-400 to-red-600",
                 tag: "bbq",
               },
               {
-                name: "Épicé",
+                name: t("tagSpicy"),
                 icon: "🌶️",
                 color: "from-red-500 to-pink-500",
                 tag: "spicy",
               },
               {
-                name: "Desserts",
+                name: t("tagDessert"),
                 icon: "🧁",
                 color: "from-purple-400 to-purple-600",
                 tag: "dessert",
               },
               {
-                name: "Apéritif",
+                name: t("tagAppetizer"),
                 icon: "🥂",
                 color: "from-yellow-400 to-amber-500",
                 tag: "appetizer",

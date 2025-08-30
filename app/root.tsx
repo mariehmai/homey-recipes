@@ -11,8 +11,9 @@ import {
   useMatch,
   useNavigate,
 } from "@remix-run/react";
-import { RiSliceLine, RiMoonLine, RiSunLine } from "@remixicon/react";
-import { useState, useEffect } from "react";
+import { RiSliceLine, RiMoonLine, RiSunLine, RiGlobalLine } from "@remixicon/react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useChangeLanguage } from "remix-i18next/react";
 
@@ -42,6 +43,10 @@ export default function App() {
   const { locale } = useLoaderData<typeof loader>();
   const { i18n, t } = useTranslation();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const languageMenuRef = useRef<HTMLDivElement>(null);
+  const languageButtonRef = useRef<HTMLButtonElement>(null);
 
   // This hook will change the i18n instance language to the current locale
   // detected by the loader, this way, when we do something to change the
@@ -50,6 +55,7 @@ export default function App() {
   useChangeLanguage(locale);
 
   useEffect(() => {
+    setIsClient(true);
     const stored = localStorage.getItem("darkMode");
     if (stored) {
       setIsDarkMode(JSON.parse(stored));
@@ -67,8 +73,80 @@ export default function App() {
     }
   }, [isDarkMode]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        languageMenuRef.current && 
+        !languageMenuRef.current.contains(event.target as Node) &&
+        languageButtonRef.current &&
+        !languageButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowLanguageMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
+  };
+
+  const changeLanguage = (newLocale: string) => {
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('lng', newLocale);
+    window.location.href = currentUrl.toString();
+  };
+
+  const languages = [
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' }
+  ];
+
+  const getButtonPosition = () => {
+    if (!languageButtonRef.current) return { top: 0, right: 0 };
+    const rect = languageButtonRef.current.getBoundingClientRect();
+    return {
+      top: rect.bottom + 8,
+      right: window.innerWidth - rect.right
+    };
+  };
+
+  const LanguageMenu = () => {
+    if (!showLanguageMenu || !isClient) return null;
+    
+    const position = getButtonPosition();
+    
+    return createPortal(
+      <div 
+        ref={languageMenuRef}
+        className="fixed bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-lg min-w-[120px] z-[9999]"
+        style={{
+          top: `${position.top}px`,
+          right: `${position.right}px`,
+        }}
+      >
+        {languages.map((lang) => (
+          <button
+            key={lang.code}
+            onClick={() => {
+              changeLanguage(lang.code);
+              setShowLanguageMenu(false);
+            }}
+            className={`w-full text-left px-3 py-2 text-sm hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center space-x-2 ${
+              locale === lang.code ? 'bg-stone-100 dark:bg-stone-700' : ''
+            }`}
+          >
+            <span>{lang.flag}</span>
+            <span className="text-stone-900 dark:text-white">{lang.name}</span>
+          </button>
+        ))}
+      </div>,
+      document.body
+    );
   };
 
   return (
@@ -107,19 +185,30 @@ export default function App() {
                 <Link to="/recipes" label={t("navRecipes")} />
               </div>
 
-              <button
-                onClick={toggleDarkMode}
-                className="p-2 md:p-3 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all hover:scale-110"
-                aria-label={
-                  isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-                }
-              >
-                {isDarkMode ? (
-                  <RiSunLine className="w-5 h-5 text-amber-500" />
-                ) : (
-                  <RiMoonLine className="w-5 h-5 text-stone-600" />
-                )}
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  ref={languageButtonRef}
+                  onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                  className="p-2 md:p-3 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all hover:scale-110"
+                  aria-label="Change language"
+                >
+                  <RiGlobalLine className="w-5 h-5 text-stone-600 dark:text-stone-300" />
+                </button>
+
+                <button
+                  onClick={toggleDarkMode}
+                  className="p-2 md:p-3 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all hover:scale-110"
+                  aria-label={
+                    isDarkMode ? t("switchToLightMode") : t("switchToDarkMode")
+                  }
+                >
+                  {isDarkMode ? (
+                    <RiSunLine className="w-5 h-5 text-amber-500" />
+                  ) : (
+                    <RiMoonLine className="w-5 h-5 text-stone-600" />
+                  )}
+                </button>
+              </div>
             </div>
           </nav>
 
@@ -135,6 +224,7 @@ export default function App() {
         <main className="min-h-screen">
           <Outlet />
         </main>
+        <LanguageMenu />
       </body>
     </html>
   );

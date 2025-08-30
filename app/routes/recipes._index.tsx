@@ -32,29 +32,29 @@ export default function Recipes() {
 
   const categories = useMemo(
     () => [
-      { id: "all", name: "Toutes", count: recipes.length },
+      { id: "all", name: t("all"), count: recipes.length },
       {
         id: "quick",
-        name: "Rapide",
+        name: t("categoryQuick"),
         count: recipes.filter((r) => r.tags.includes("quick")).length,
       },
       {
         id: "savory",
-        name: "Salé",
+        name: t("categorySavory"),
         count: recipes.filter((r) => r.tags.includes("savory")).length,
       },
       {
         id: "sweet",
-        name: "Sucré",
+        name: t("categorySweet"),
         count: recipes.filter((r) => r.tags.includes("sweet")).length,
       },
       {
         id: "soup",
-        name: "Soupes",
+        name: t("categorySoup"),
         count: recipes.filter((r) => r.tags.includes("soup")).length,
       },
     ],
-    []
+    [t]
   );
 
   const filteredRecipes = useMemo(() => {
@@ -82,7 +82,7 @@ export default function Recipes() {
 
   function formatTime(time?: { min: number; max?: number }) {
     if (!time) return "";
-    return time.max ? `${time.min}-${time.max} min` : `${time.min} min`;
+    return time.max ? `${time.min}-${time.max} ${t("minutes")}` : `${time.min} ${t("minutes")}`;
   }
 
   const selectedCategory = searchParams.get("category") || "all";
@@ -114,7 +114,7 @@ export default function Recipes() {
               </div>
               <input
                 type="text"
-                placeholder="Rechercher..."
+                placeholder={t("search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 md:py-3 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm md:text-base transition-all"
