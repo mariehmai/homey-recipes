@@ -4,7 +4,7 @@
 #
 
 app = 'homey-recipes'
-primary_region = 'mad'
+primary_region = 'cdg'
 
 [build]
 
