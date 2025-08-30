@@ -1,17 +1,42 @@
-import type { ActionFunction, MetaFunction } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
+import type {
+  ActionFunction,
+  LoaderFunctionArgs,
+  MetaFunction,
+} from "@remix-run/node";
+import { redirect, json } from "@remix-run/node";
 import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { RiAddLine, RiDeleteBinLine } from "@remixicon/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
+import i18next from "~/i18next.server";
+import { buildI18nUrl } from "~/utils/i18n-redirect";
 import { addRecipe } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
 
-export const meta: MetaFunction = () => {
-  return [{ title: "Add New Recipe" }];
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const locale = await i18next.getLocale(request);
+  return json({ locale });
+};
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  const locale = data?.locale || "fr";
+
+  const titles: Record<string, string> = {
+    fr: "Ajouter une nouvelle recette",
+    en: "Add New Recipe",
+    es: "Añadir nueva receta",
+    pt: "Adicionar nova receita",
+    he: "הוסף מתכון חדש",
+  };
+
+  return [{ title: titles[locale] || titles.fr }];
+};
+
+export const handle = {
+  i18n: "common",
 };
 
 function generateSlug(title: string): string {
@@ -27,6 +52,7 @@ function generateSlug(title: string): string {
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
+  const locale = await i18next.getLocale(request);
 
   const title = formData.get("title") as string;
   const summary = formData.get("summary") as string;
@@ -76,7 +102,7 @@ export const action: ActionFunction = async ({ request }) => {
     instructions.length === 0
   ) {
     return Response.json(
-      { error: "Please fill in all required fields" },
+      { error: "fillAllRequiredFields" }, // Will be translated on frontend
       { status: 400 }
     );
   }
@@ -98,7 +124,11 @@ export const action: ActionFunction = async ({ request }) => {
 
   // Save to server storage
   const savedRecipe = addRecipe(newRecipe);
-  return redirect(`/recipes/${savedRecipe.slug}`);
+
+  // Build redirect URL with proper language prefix
+  const redirectUrl = buildI18nUrl(`/recipes/${savedRecipe.slug}`, locale);
+
+  return redirect(redirectUrl);
 };
 
 interface Ingredient {
@@ -224,7 +254,7 @@ export default function NewRecipe() {
       <main className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
         {actionData?.error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
-            {actionData.error}
+            {t(actionData.error)}
           </div>
         )}
 
@@ -292,7 +322,7 @@ export default function NewRecipe() {
                     defaultValue={prepTime}
                     onChange={(e) => setPrepTime(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="30"
+                    placeholder={t("prepTimePlaceholder")}
                     required
                     min="1"
                   />
@@ -308,7 +338,7 @@ export default function NewRecipe() {
                     defaultValue={cookTime}
                     onChange={(e) => setCookTime(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="45"
+                    placeholder={t("cookTimePlaceholder")}
                     min="1"
                   />
                 </div>
@@ -327,7 +357,7 @@ export default function NewRecipe() {
                     defaultValue={servings}
                     onChange={(e) => setServings(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="4"
+                    placeholder={t("servingsPlaceholder")}
                     required
                     min="1"
                   />
@@ -337,7 +367,7 @@ export default function NewRecipe() {
               {/* Tags */}
               <div>
                 <span className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
-                  Tags
+                  {t("tags")}
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {selectedTags.map((tag) => (
@@ -401,7 +431,7 @@ export default function NewRecipe() {
                       )
                     }
                     className="w-20 px-2 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="1"
+                    placeholder={t("quantityPlaceholder")}
                   />
 
                   <select
@@ -427,7 +457,7 @@ export default function NewRecipe() {
                       updateIngredient(ingredient.id, "name", e.target.value)
                     }
                     className="flex-1 px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Ingredient name..."
+                    placeholder={t("ingredientNamePlaceholder")}
                   />
 
                   {ingredients.length > 1 && (
@@ -478,7 +508,7 @@ export default function NewRecipe() {
                     }
                     rows={3}
                     className="flex-1 px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Describe this step..."
+                    placeholder={t("stepDescriptionPlaceholder")}
                   />
 
                   {instructions.length > 1 && (

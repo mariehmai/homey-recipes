@@ -5,6 +5,20 @@ import { resolve } from "node:path";
 
 import i18n from "~/i18n"; // your i18n configuration file
 
+// Helper function to extract locale from URL path
+function getLocaleFromPath(request: Request): string {
+  const url = new URL(request.url);
+  const pathSegments = url.pathname.split("/").filter(Boolean);
+
+  // Check if first segment is a supported language
+  if (pathSegments.length > 0 && i18n.supportedLngs.includes(pathSegments[0])) {
+    return pathSegments[0];
+  }
+
+  // Default to French (no subpath)
+  return "fr";
+}
+
 const i18next = new RemixI18Next({
   detection: {
     supportedLanguages: i18n.supportedLngs,
@@ -24,4 +38,10 @@ const i18next = new RemixI18Next({
   plugins: [Backend],
 });
 
+// Override the getLocale method to use our custom path-based detection
+i18next.getLocale = async (request: Request) => {
+  return getLocaleFromPath(request);
+};
+
 export default i18next;
+export { getLocaleFromPath };

@@ -1,33 +1,58 @@
-import type { LoaderFunction, MetaFunction } from "@remix-run/node";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { useLoaderData, useParams } from "@remix-run/react";
 import clsx from "clsx";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import i18next from "~/i18next.server";
 import { getAllRecipes } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
 
-export const meta: MetaFunction = () => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  const locale = data?.locale || "fr";
+
+  const descriptions: Record<string, string> = {
+    fr: "Découvrez, créez et savourez la recette parfaite pour chaque occasion, où des plats délicieux se marient avec une cuisine facile à préparer à la maison.",
+    en: "Discover, create, and savor the perfect recipe for every occasion – where delicious meals meet effortless cooking at home.",
+    es: "Descubre, crea y saborea la receta perfecta para cada ocasión, donde los platos deliciosos se encuentran con la cocina fácil en casa.",
+    pt: "Descubra, crie e saboreie a receita perfeita para cada ocasião, onde pratos deliciosos encontram a culinária fácil em casa.",
+    he: "גלו, צרו וטעמו את המתכון המושלם לכל אירוע, כאשר מנות טעימות נפגשות עם בישול קל בבית.",
+  };
+
   return [
     { title: "Homey Recipes" },
     {
       name: "description",
-      content:
-        "Discover, create, and savor the perfect recipe for every occasion – where delicious meals meet effortless cooking at home.",
+      content: descriptions[locale] || descriptions.fr,
     },
   ];
 };
 
-export const loader: LoaderFunction = async () => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const locale = await i18next.getLocale(request);
   const recipes = getAllRecipes();
-  return json(recipes);
+  return json({ recipes, locale });
+};
+
+export const handle = {
+  i18n: "common",
 };
 
 export default function Index() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
-  const recipes = useLoaderData<Recipe[]>();
+  const { recipes } = useLoaderData<{ recipes: Recipe[]; locale: string }>();
+  const params = useParams();
+  const currentLang = params.lng || "fr";
+
+  // Helper function to build URLs with language prefix
+  const buildUrl = (path: string) => {
+    if (currentLang === "fr") {
+      return path;
+    }
+    return `/${currentLang}${path}`;
+  };
 
   const recipesFound = useMemo(
     () =>
@@ -59,14 +84,14 @@ export default function Index() {
               >
                 {recipesFound.length === 0 ? (
                   <div className="p-4 text-center text-gray-500 dark:text-stone-400 text-sm md:text-base">
-                    Aucune recette trouvée
+                    {t("noRecipesFound")}
                   </div>
                 ) : (
                   <div className="p-2">
                     {recipesFound.map((recipe) => (
-                      <Link
+                      <a
                         key={recipe.slug}
-                        to={`/recipes/${recipe.slug}`}
+                        href={buildUrl(`/recipes/${recipe.slug}`)}
                         className="block p-3 md:p-4 hover:bg-orange-50 dark:hover:bg-stone-700 rounded-lg transition-all hover:scale-[1.02] group"
                       >
                         <div className="flex items-center justify-between">
@@ -84,7 +109,7 @@ export default function Index() {
                             →
                           </span>
                         </div>
-                      </Link>
+                      </a>
                     ))}
                   </div>
                 )}
@@ -93,35 +118,35 @@ export default function Index() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 md:gap-6 mt-12 max-w-sm md:max-w-md mx-auto">
-            <Link
-              to="/recipes"
+            <a
+              href={buildUrl("/recipes")}
               className="bg-white dark:bg-stone-800 backdrop-blur-sm rounded-2xl p-4 md:p-6 text-center border border-orange-100 dark:border-stone-600 hover:bg-white dark:hover:bg-stone-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
             >
               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-red-400 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <span className="text-white text-xl md:text-2xl">📖</span>
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white text-sm md:text-base">
-                Toutes les recettes
+                {t("allRecipes")}
               </h3>
               <p className="text-xs md:text-sm text-gray-600 dark:text-stone-300 mt-1">
-                {recipes.length} disponibles
+                {recipes.length} {t("available")}
               </p>
-            </Link>
+            </a>
 
-            <Link
-              to="/recipes/new"
+            <a
+              href={buildUrl("/recipes/new")}
               className="bg-white dark:bg-stone-800 backdrop-blur-sm rounded-2xl p-4 md:p-6 text-center border border-orange-100 dark:border-stone-600 hover:bg-white dark:hover:bg-stone-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
             >
               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <span className="text-white text-xl md:text-2xl">➕</span>
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white text-sm md:text-base">
-                Ajouter une recette
+                {t("addRecipe")}
               </h3>
               <p className="text-xs md:text-sm text-gray-600 dark:text-stone-300 mt-1">
-                Créer une nouvelle recette
+                {t("createNewRecipe")}
               </p>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -130,18 +155,18 @@ export default function Index() {
         <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2 md:mb-4">
-              Nos meilleures recettes
+              {t("ourBestRecipes")}
             </h2>
             <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base lg:text-lg">
-              Découvrez nos plats les plus populaires
+              {t("discoverPopularDishes")}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {recipes.slice(0, 8).map((recipe) => (
-              <Link
+              <a
                 key={recipe.slug}
-                to={`/recipes/${recipe.slug}`}
+                href={buildUrl(`/recipes/${recipe.slug}`)}
                 className="group bg-white dark:bg-stone-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 dark:border-stone-700 hover:-translate-y-2"
               >
                 <div className="relative h-32 md:h-40 lg:h-48 bg-gradient-to-br from-orange-100 to-red-100">
@@ -179,17 +204,17 @@ export default function Index() {
                     </p>
                   )}
                 </div>
-              </Link>
+              </a>
             ))}
           </div>
 
           <div className="text-center mt-8 md:mt-12">
-            <Link
-              to="/recipes"
+            <a
+              href={buildUrl("/recipes")}
               className="inline-block bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 md:px-10 md:py-4 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105 text-sm md:text-base"
             >
-              Voir toutes les recettes
-            </Link>
+              {t("seeAllRecipes")}
+            </a>
           </div>
         </div>
       </section>
@@ -197,7 +222,7 @@ export default function Index() {
       <section className="py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-r from-orange-500/5 to-red-500/5 dark:from-orange-500/10 dark:to-red-500/10">
         <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-8 md:mb-12 text-center">
-            Explorez par catégorie
+            {t("exploreByCategory")}
           </h2>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4 md:gap-6">
@@ -251,9 +276,9 @@ export default function Index() {
                 tag: "appetizer",
               },
             ].map((category) => (
-              <Link
+              <a
                 key={category.tag}
-                to={`/recipes?category=${category.tag}`}
+                href={buildUrl(`/recipes?category=${category.tag}`)}
                 className="group bg-white dark:bg-stone-800 rounded-2xl p-4 md:p-5 lg:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-stone-700 text-center"
               >
                 <div
@@ -271,9 +296,9 @@ export default function Index() {
                     recipes.filter((r) => r.tags.includes(category.tag as Tag))
                       .length
                   }{" "}
-                  recettes
+                  {t("recipes")}
                 </p>
-              </Link>
+              </a>
             ))}
           </div>
         </div>

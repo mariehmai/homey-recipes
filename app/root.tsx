@@ -22,7 +22,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useChangeLanguage } from "remix-i18next/react";
 
-import i18next from "~/i18next.server";
+import { getLocaleFromPath } from "~/i18next.server";
 import styles from "~/index.css";
 
 import { Footer } from "./components/Footer";
@@ -31,7 +31,7 @@ import { Link } from "./components/Link";
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const locale = await i18next.getLocale(request);
+  const locale = getLocaleFromPath(request);
   return json({ locale });
 }
 
@@ -103,13 +103,34 @@ export default function App() {
 
   const changeLanguage = (newLocale: string) => {
     const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set("lng", newLocale);
-    window.location.href = currentUrl.toString();
+    const pathSegments = currentUrl.pathname.split("/").filter(Boolean);
+
+    // Remove current language prefix if it exists
+    if (
+      pathSegments.length > 0 &&
+      ["fr", "en", "es", "pt", "he"].includes(pathSegments[0])
+    ) {
+      pathSegments.shift();
+    }
+
+    // Build new path
+    let newPath = "/";
+    if (newLocale !== "fr") {
+      // Only add language prefix for non-French
+      newPath += newLocale + "/";
+    }
+    newPath += pathSegments.join("/");
+
+    // Preserve search params and hash
+    window.location.href = newPath + currentUrl.search + currentUrl.hash;
   };
 
   const languages = [
     { code: "fr", name: "Français", flag: "🇫🇷" },
     { code: "en", name: "English", flag: "🇺🇸" },
+    { code: "es", name: "Español", flag: "🇪🇸" },
+    { code: "pt", name: "Português", flag: "🇵🇹" },
+    { code: "he", name: "עברית", flag: "🇮🇱" },
   ];
 
   const getButtonPosition = () => {
@@ -171,7 +192,11 @@ export default function App() {
           <nav className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-6 lg:px-8 py-4 md:py-6">
             <button
               className="flex items-center space-x-3 group transition-all hover:scale-105"
-              onClick={() => navigate("/")}
+              onClick={() => {
+                const currentLang = locale;
+                const homeUrl = currentLang === "fr" ? "/" : `/${currentLang}/`;
+                navigate(homeUrl);
+              }}
             >
               <div className="p-2 md:p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl shadow-lg group-hover:shadow-xl transition-all">
                 <RiSliceLine
