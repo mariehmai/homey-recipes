@@ -21,7 +21,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   };
 
   return [
-    { title: "Homey Recipes" },
+    { title: "Papilles & Mami" },
     {
       name: "description",
       content: descriptions[locale] || descriptions.fr,

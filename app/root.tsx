@@ -206,7 +206,7 @@ export default function App() {
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
-                  Homey Recipes
+                  Papilles & Mami
                 </h1>
               </div>
             </button>

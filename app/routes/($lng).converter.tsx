@@ -14,7 +14,7 @@ import {
 import type { Unit } from "~/utils/unit-converter";
 
 export const meta: MetaFunction = () => {
-  return [{ title: "Unit Converter - Homey Recipes" }];
+  return [{ title: "Unit Converter - Papilles & Mami" }];
 };
 
 export default function Converter() {
