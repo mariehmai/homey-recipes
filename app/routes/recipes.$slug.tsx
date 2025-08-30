@@ -16,17 +16,17 @@ export const meta: MetaFunction = () => {
 
 export const loader: LoaderFunction = async ({ params }) => {
   const { slug } = params;
-  
+
   if (!slug) {
     throw new Response("Not Found", { status: 404 });
   }
-  
+
   const recipe = getRecipeBySlug(slug);
-  
+
   if (!recipe) {
     throw new Response("Not Found", { status: 404 });
   }
-  
+
   return json(recipe);
 };
 

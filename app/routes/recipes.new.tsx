@@ -1,10 +1,6 @@
 import type { ActionFunction, MetaFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import {
-  Form,
-  useActionData,
-  useNavigation,
-} from "@remix-run/react";
+import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { RiAddLine, RiDeleteBinLine } from "@remixicon/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

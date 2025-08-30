@@ -485,30 +485,33 @@ export function getAllRecipes(): Recipe[] {
 }
 
 export function getRecipeBySlug(slug: string): Recipe | undefined {
-  return getAllRecipes().find(recipe => recipe.slug === slug);
+  return getAllRecipes().find((recipe) => recipe.slug === slug);
 }
 
 export function addRecipe(recipe: Recipe): Recipe {
   // Check if slug already exists and modify if needed
   let uniqueSlug = recipe.slug;
   let counter = 1;
-  while (getAllRecipes().some(r => r.slug === uniqueSlug)) {
+  while (getAllRecipes().some((r) => r.slug === uniqueSlug)) {
     uniqueSlug = `${recipe.slug}-${counter}`;
     counter++;
   }
-  
+
   const newRecipe = { ...recipe, slug: uniqueSlug };
   customRecipes.push(newRecipe);
   return newRecipe;
 }
 
-export function updateRecipe(slug: string, updatedRecipe: Omit<Recipe, 'slug'>): Recipe | null {
-  const recipeIndex = customRecipes.findIndex(recipe => recipe.slug === slug);
-  
+export function updateRecipe(
+  slug: string,
+  updatedRecipe: Omit<Recipe, "slug">
+): Recipe | null {
+  const recipeIndex = customRecipes.findIndex((recipe) => recipe.slug === slug);
+
   if (recipeIndex === -1) {
     return null;
   }
-  
+
   const recipe = { ...updatedRecipe, slug };
   customRecipes[recipeIndex] = recipe;
   return recipe;
@@ -516,7 +519,7 @@ export function updateRecipe(slug: string, updatedRecipe: Omit<Recipe, 'slug'>):
 
 export function deleteRecipe(slug: string): boolean {
   const initialLength = customRecipes.length;
-  customRecipes = customRecipes.filter(recipe => recipe.slug !== slug);
+  customRecipes = customRecipes.filter((recipe) => recipe.slug !== slug);
   return customRecipes.length < initialLength;
 }
 
