@@ -283,7 +283,9 @@ export default function Recipe() {
             <div className="flex items-center space-x-1 md:space-x-2">
               <span className="text-orange-500 text-base md:text-lg">👥</span>
               <span className="font-medium">
-                {recipe.servings ? `${recipe.servings} ${t("servings")}` : `4-6 ${t("servings")}`}
+                {recipe.servings
+                  ? `${recipe.servings} ${t("servings")}`
+                  : `4-6 ${t("servings")}`}
               </span>
             </div>
           </div>
