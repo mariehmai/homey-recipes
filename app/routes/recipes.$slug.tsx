@@ -2,11 +2,12 @@ import type { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import clsx from "clsx";
-import { FunctionComponent, useState } from "react";
+import { FunctionComponent, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
 import { ServingCalculator } from "~/components/ServingCalculator";
+import { isFavorite, toggleFavorite } from "~/utils/favorites";
 import { getRecipeBySlug } from "~/utils/recipe-storage.server";
 import type { Recipe } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
@@ -65,11 +66,21 @@ export default function Recipe() {
   const [checkedInstructions, setCheckedInstructions] = useState<Set<string>>(
     new Set()
   );
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavoriteState, setIsFavoriteState] = useState(false);
   const [scaledIngredients, setScaledIngredients] = useState<
     Recipe["ingredients"]
   >(recipe.ingredients);
   const [currentServings, setCurrentServings] = useState(recipe.servings || 4);
+
+  // Initialize favorite status from localStorage
+  useEffect(() => {
+    setIsFavoriteState(isFavorite(recipe.slug));
+  }, [recipe.slug]);
+
+  const handleToggleFavorite = () => {
+    const newFavoriteState = toggleFavorite(recipe.slug);
+    setIsFavoriteState(newFavoriteState);
+  };
 
   const handleServingsChange = (
     newScaledIngredients: Recipe["ingredients"],
@@ -260,16 +271,19 @@ export default function Recipe() {
 
             <div className="flex items-center space-x-2 md:space-x-3">
               <button
-                onClick={() => setIsFavorite(!isFavorite)}
+                onClick={handleToggleFavorite}
                 className={clsx(
                   "p-2 md:p-3 rounded-full transition-all hover:scale-105",
-                  isFavorite
+                  isFavoriteState
                     ? "bg-red-100 dark:bg-red-900"
                     : "bg-gray-100 dark:bg-stone-800 hover:bg-gray-200 dark:hover:bg-stone-700"
                 )}
+                aria-label={
+                  isFavoriteState ? "Remove from favorites" : "Add to favorites"
+                }
               >
                 <span className="text-lg md:text-xl">
-                  {isFavorite ? "❤️" : "🤍"}
+                  {isFavoriteState ? "❤️" : "🤍"}
                 </span>
               </button>
               <button className="p-2 md:p-3 rounded-full bg-gray-100 dark:bg-stone-800 transition-all hover:bg-gray-200 dark:hover:bg-stone-700 hover:scale-105">

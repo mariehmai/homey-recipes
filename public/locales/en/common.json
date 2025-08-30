@@ -62,5 +62,6 @@
   "result": "Result",
   "ingredient": "Ingredient",
   "weightVolumeConverter": "Weight/Volume Converter",
-  "conversionType": "Conversion Type"
+  "conversionType": "Conversion Type",
+  "favorites": "Favorites"
 }

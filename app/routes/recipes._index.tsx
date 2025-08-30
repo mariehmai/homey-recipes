@@ -3,9 +3,10 @@ import { json } from "@remix-run/node";
 import { useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
 import clsx from "clsx";
 import { TFunction } from "i18next";
-import { FunctionComponent, useMemo, useState } from "react";
+import { FunctionComponent, useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
+import { getFavorites, toggleFavorite } from "~/utils/favorites";
 import { getAllRecipes } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
@@ -36,11 +37,22 @@ export default function Recipes() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid");
+  const [favoriteRecipes, setFavoriteRecipes] = useState<string[]>([]);
   const recipes = useLoaderData<Recipe[]>();
+
+  // Load favorites from localStorage
+  useEffect(() => {
+    setFavoriteRecipes(getFavorites());
+  }, []);
 
   const categories = useMemo(
     () => [
       { id: "all", name: t("all"), count: recipes.length },
+      {
+        id: "favorites",
+        name: t("favorites"),
+        count: recipes.filter((r) => favoriteRecipes.includes(r.slug)).length,
+      },
       {
         id: "quick",
         name: t("categoryQuick"),
@@ -62,7 +74,7 @@ export default function Recipes() {
         count: recipes.filter((r) => r.tags.includes("soup")).length,
       },
     ],
-    [t, recipes]
+    [t, recipes, favoriteRecipes]
   );
 
   const filteredRecipes = useMemo(() => {
@@ -74,10 +86,12 @@ export default function Recipes() {
       const matchesCategory =
         !categoryFilter ||
         categoryFilter === "all" ||
+        (categoryFilter === "favorites" &&
+          favoriteRecipes.includes(recipe.slug)) ||
         recipe.tags.includes(categoryFilter as Tag);
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, searchParams, recipes]);
+  }, [searchQuery, searchParams, recipes, favoriteRecipes]);
 
   function selectCategory(category: string) {
     if (category === "all") {
@@ -87,6 +101,12 @@ export default function Recipes() {
       setSearchParams(searchParams, { preventScrollReset: true });
     }
   }
+
+  const handleToggleFavorite = (recipeSlug: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(recipeSlug);
+    setFavoriteRecipes(getFavorites());
+  };
 
   function formatTime(time?: { min: number; max?: number }) {
     if (!time) return "";
@@ -224,6 +244,8 @@ export default function Recipes() {
                 onRecipeClick={() => navigate(`/recipes/${recipe.slug}`)}
                 formatTime={formatTime}
                 t={t}
+                isFavorite={favoriteRecipes.includes(recipe.slug)}
+                onToggleFavorite={handleToggleFavorite}
               />
             ))}
           </div>
@@ -236,6 +258,8 @@ export default function Recipes() {
                 onRecipeClick={() => navigate(`/recipes/${recipe.slug}`)}
                 formatTime={formatTime}
                 t={t}
+                isFavorite={favoriteRecipes.includes(recipe.slug)}
+                onToggleFavorite={handleToggleFavorite}
               />
             ))}
           </div>
@@ -273,7 +297,16 @@ const RecipeCard: FunctionComponent<{
   onRecipeClick: () => void;
   formatTime: (time?: { min: number; max?: number }) => string;
   t: TFunction<"translation", undefined>;
-}> = ({ recipe, onRecipeClick, formatTime, t }) => {
+  isFavorite: boolean;
+  onToggleFavorite: (slug: string, e: React.MouseEvent) => void;
+}> = ({
+  recipe,
+  onRecipeClick,
+  formatTime,
+  t,
+  isFavorite,
+  onToggleFavorite,
+}) => {
   return (
     <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-left group relative">
       <button
@@ -293,10 +326,18 @@ const RecipeCard: FunctionComponent<{
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
         <button
-          className="absolute top-2 md:top-3 right-2 md:right-3 p-1.5 md:p-2 rounded-full bg-white/80 hover:bg-white transition-all hover:scale-110 z-20"
-          onClick={(e) => e.stopPropagation()}
+          className={clsx(
+            "absolute top-2 md:top-3 right-2 md:right-3 p-1.5 md:p-2 rounded-full transition-all hover:scale-110 z-20",
+            isFavorite
+              ? "bg-red-100/90 hover:bg-red-100"
+              : "bg-white/80 hover:bg-white"
+          )}
+          onClick={(e) => onToggleFavorite(recipe.slug, e)}
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
-          <span className="text-base md:text-lg">🤍</span>
+          <span className="text-base md:text-lg">
+            {isFavorite ? "❤️" : "🤍"}
+          </span>
         </button>
 
         <div className="absolute bottom-2 md:bottom-3 left-2 md:left-3">
@@ -337,13 +378,37 @@ const RecipeListItem: FunctionComponent<{
   onRecipeClick: () => void;
   formatTime: (time?: { min: number; max?: number }) => string;
   t: TFunction<"translation", undefined>;
-}> = ({ recipe, onRecipeClick, formatTime, t }) => {
+  isFavorite: boolean;
+  onToggleFavorite: (slug: string, e: React.MouseEvent) => void;
+}> = ({
+  recipe,
+  onRecipeClick,
+  formatTime,
+  t,
+  isFavorite,
+  onToggleFavorite,
+}) => {
   return (
-    <button
-      className="w-full bg-white dark:bg-stone-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-stone-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-left group"
-      onClick={onRecipeClick}
-    >
-      <div className="flex space-x-4 md:space-x-6">
+    <div className="relative bg-white dark:bg-stone-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-stone-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
+      <button
+        className="absolute inset-0 z-10 cursor-pointer"
+        onClick={onRecipeClick}
+      />
+
+      <button
+        className={clsx(
+          "absolute top-4 right-4 p-2 rounded-full transition-all hover:scale-110 z-20",
+          isFavorite
+            ? "bg-red-100/90 hover:bg-red-100"
+            : "bg-gray-100/80 hover:bg-gray-100"
+        )}
+        onClick={(e) => onToggleFavorite(recipe.slug, e)}
+        aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+      >
+        <span className="text-sm">{isFavorite ? "❤️" : "🤍"}</span>
+      </button>
+
+      <div className="flex space-x-4 md:space-x-6 pr-12">
         <div className="relative w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-lg overflow-hidden flex-shrink-0">
           <div
             className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
@@ -383,6 +448,6 @@ const RecipeListItem: FunctionComponent<{
           </div>
         </div>
       </div>
-    </button>
+    </div>
   );
 };
