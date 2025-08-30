@@ -1,4 +1,4 @@
-name: 🚀 Deploy
+name: 🚀 CI/CD Pipeline
 
 on:
   push:
@@ -16,8 +16,8 @@ permissions:
   contents: read
 
 jobs:
-  lint:
-    name: ⬣ ESLint
+  ci-and-format:
+    name: 🧪 CI & Format
     runs-on: ubuntu-latest
     steps:
       - name: ⬇️ Checkout repo
@@ -36,33 +36,33 @@ jobs:
       - name: 🔬 Lint
         run: npm run lint
 
-  typecheck:
-    name: ʦ TypeScript
-    runs-on: ubuntu-latest
-    steps:
-      - name: ⬇️ Checkout repo
-        uses: actions/checkout@v4
-
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v4
-        with:
-          cache: npm
-          cache-dependency-path: ./package.json
-          node-version: 18
-
-      - name: 📥 Install deps
-        run: npm install
-
       - name: 🔎 Type check
         run: npm run typecheck --if-present
+
+      - name: 👔 Format
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository == 'mariehmai/homey-recipes'
+        run: npm run format:repo
+
+      - name: 💪 Commit formatting changes
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository == 'mariehmai/homey-recipes'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git add .
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "💿 no formatting changed"
+            exit 0
+          fi
+          git commit -m "chore: format"
+          git push
+          echo "💿 pushed formatting changes https://github.com/$GITHUB_REPOSITORY/commit/$(git rev-parse HEAD)"
 
   deploy:
     name: 🚀 Deploy
     runs-on: ubuntu-latest
-    needs: [lint, typecheck]
-    # only deploy main/dev branch on pushes
+    needs: ci-and-format
     if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name == 'push' }}
-
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
