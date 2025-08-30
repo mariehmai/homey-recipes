@@ -12,10 +12,10 @@ export const BackButton: FunctionComponent<{ label?: string }> = ({
 
   return (
     <button
-      className="flex items-center text-start text-sm text-slate-800 dark:text-stone-200 w-fit pr-2 rounded-xl border border-slate-800 dark:border-stone-600 hover:shadow-md hover:opacity-70 transition-all"
+      className="flex items-center text-start text-sm md:text-base text-gray-900 dark:text-white bg-gray-100 dark:bg-stone-800 hover:bg-gray-200 dark:hover:bg-stone-700 hover:scale-105 w-fit px-3 py-2 md:px-4 md:py-3 rounded-full transition-all font-medium"
       onClick={() => navigate(-1)}
     >
-      <RiArrowLeftSLine size={22} />
+      <RiArrowLeftSLine size={20} className="mr-1" />
       {backBtnLabel}
     </button>
   );
