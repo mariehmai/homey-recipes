@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { BackButton } from "~/components/BackButton";
 import { addRecipe } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
+import { toTitleCase } from "~/utils/stringExtensions";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Add New Recipe" }];
@@ -213,7 +214,7 @@ export default function NewRecipe() {
           <div className="flex items-center justify-between">
             <BackButton />
             <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-              Add New Recipe
+              {t("addNewRecipe")}
             </h1>
             <div></div>
           </div>
@@ -231,7 +232,7 @@ export default function NewRecipe() {
           {/* Basic Information */}
           <div className="bg-white dark:bg-stone-800 rounded-lg p-6 border border-gray-200 dark:border-stone-600">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-              Basic Information
+              {t("basicInformation")}
             </h2>
 
             <div className="space-y-4">
@@ -240,7 +241,7 @@ export default function NewRecipe() {
                   htmlFor="title"
                   className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2"
                 >
-                  Recipe Title *
+                  {t("recipeTitle")} *
                 </label>
                 <input
                   id="title"
@@ -249,7 +250,9 @@ export default function NewRecipe() {
                   defaultValue={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="Enter recipe title..."
+                  placeholder={t("recipeTitlePlaceholder", {
+                    defaultValue: "",
+                  })}
                   required
                 />
               </div>
@@ -259,7 +262,7 @@ export default function NewRecipe() {
                   htmlFor="summary"
                   className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2"
                 >
-                  Summary
+                  {t("summary")}
                 </label>
                 <textarea
                   id="summary"
@@ -268,7 +271,9 @@ export default function NewRecipe() {
                   onChange={(e) => setSummary(e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="Brief description of the recipe..."
+                  placeholder={t("recipeDescriptionPlaceholder", {
+                    defaultValue: "",
+                  })}
                 />
               </div>
 
@@ -278,7 +283,7 @@ export default function NewRecipe() {
                     htmlFor="prepTime"
                     className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2"
                   >
-                    Prep Time ({t("minutes")}) *
+                    {t("prepTime")} ({t("minutes")}) *
                   </label>
                   <input
                     id="prepTime"
@@ -295,7 +300,7 @@ export default function NewRecipe() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
-                    Cook Time ({t("minutes")})
+                    {t("cookTime")} ({t("minutes")})
                   </label>
                   <input
                     type="number"
@@ -313,7 +318,7 @@ export default function NewRecipe() {
                     htmlFor="servings"
                     className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2"
                   >
-                    Servings *
+                    {toTitleCase(t("servings"))} *
                   </label>
                   <input
                     id="servings"
@@ -369,7 +374,7 @@ export default function NewRecipe() {
                 className="flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
               >
                 <RiAddLine size={18} />
-                <span>Add Ingredient</span>
+                <span>{t("addIngredient")}</span>
               </button>
             </div>
 
@@ -451,7 +456,7 @@ export default function NewRecipe() {
                 className="flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
               >
                 <RiAddLine size={18} />
-                <span>Add Step</span>
+                <span>{t("addStep")}</span>
               </button>
             </div>
 
@@ -496,7 +501,7 @@ export default function NewRecipe() {
               disabled={isSubmitting}
               className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Creating Recipe..." : "Create Recipe"}
+              {isSubmitting ? t("creatingRecipe") : t("createRecipe")}
             </button>
           </div>
         </Form>

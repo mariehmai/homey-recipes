@@ -130,10 +130,10 @@ export default function Recipes() {
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
-                  Our recipes
+                  {t("recipesPageTitle")}
                 </h1>
                 <p className="text-sm md:text-base text-gray-600 dark:text-stone-300">
-                  Découvrez notre collection
+                  {t("recipesPageDescription")}
                 </p>
               </div>
             </div>
