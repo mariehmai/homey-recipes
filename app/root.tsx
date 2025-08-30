@@ -25,6 +25,7 @@ import { useChangeLanguage } from "remix-i18next/react";
 import i18next from "~/i18next.server";
 import styles from "~/index.css";
 
+import { Footer } from "./components/Footer";
 import { Link } from "./components/Link";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
@@ -229,6 +230,7 @@ export default function App() {
         <main className="min-h-screen">
           <Outlet />
         </main>
+        <Footer />
         <LanguageMenu />
       </body>
     </html>

@@ -42,5 +42,10 @@
   "addIngredient": "Ajouter un ingrédient",
   "addStep": "Ajouter une étape",
   "createRecipe": "Créer la recette",
-  "cancel": "Annuler"
+  "cancel": "Annuler",
+  "home": "Accueil",
+  "quickLinks": "Liens rapides",
+  "categories": "Catégories",
+  "allRightsReserved": "Tous droits réservés",
+  "contact": "Contact"
 }
