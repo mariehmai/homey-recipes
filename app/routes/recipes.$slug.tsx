@@ -311,9 +311,11 @@ export default function Recipe() {
             {recipe.title}
           </h1>
 
-          <p className="text-gray-600 dark:text-stone-300 mb-4 md:mb-6 leading-relaxed text-sm md:text-base lg:text-lg">
-            {recipe.summary}
-          </p>
+          {recipe.summary && (
+            <p className="text-gray-600 dark:text-stone-300 mb-4 md:mb-6 leading-relaxed text-sm md:text-base lg:text-lg">
+              {recipe.summary}
+            </p>
+          )}
 
           <div className="flex items-center space-x-4 md:space-x-6 text-sm md:text-base text-gray-500 dark:text-stone-400 mb-6 md:mb-8">
             <div className="flex items-center space-x-1 md:space-x-2">

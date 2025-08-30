@@ -26,7 +26,7 @@ type Time = {
 export type Recipe = {
   slug: string;
   title: string;
-  summary: string;
+  summary?: string;
   time?: Time;
   servings?: number;
   instructions: Instruction[];

@@ -74,9 +74,11 @@ export default function Index() {
                             <h4 className="font-medium text-gray-900 dark:text-white text-sm md:text-base group-hover:text-orange-600 transition-colors truncate">
                               {recipe.title}
                             </h4>
-                            <p className="text-xs md:text-sm text-gray-500 dark:text-stone-400 mt-1 line-clamp-1">
-                              {recipe.summary}
-                            </p>
+                            {recipe.summary && (
+                              <p className="text-xs md:text-sm text-gray-500 dark:text-stone-400 mt-1 line-clamp-1">
+                                {recipe.summary}
+                              </p>
+                            )}
                           </div>
                           <span className="text-gray-400 dark:text-stone-500 group-hover:text-orange-500 ml-2 text-sm md:text-base">
                             →
@@ -171,9 +173,11 @@ export default function Index() {
                   <h3 className="font-bold text-gray-900 dark:text-white mb-2 text-base md:text-lg group-hover:text-orange-600 transition-colors leading-tight">
                     {recipe.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 leading-relaxed">
-                    {recipe.summary}
-                  </p>
+                  {recipe.summary && (
+                    <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 leading-relaxed">
+                      {recipe.summary}
+                    </p>
+                  )}
                 </div>
               </Link>
             ))}

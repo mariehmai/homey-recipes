@@ -70,7 +70,6 @@ export const action: ActionFunction = async ({ request }) => {
   // Validation
   if (
     !title ||
-    !summary ||
     !prepTime ||
     ingredients.length === 0 ||
     instructions.length === 0
@@ -260,7 +259,7 @@ export default function NewRecipe() {
                   htmlFor="summary"
                   className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2"
                 >
-                  Summary *
+                  Summary
                 </label>
                 <textarea
                   id="summary"
@@ -270,7 +269,6 @@ export default function NewRecipe() {
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                   placeholder="Brief description of the recipe..."
-                  required
                 />
               </div>
 

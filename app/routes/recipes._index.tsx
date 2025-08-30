@@ -82,7 +82,7 @@ export default function Recipes() {
     return recipes.filter((recipe) => {
       const matchesSearch =
         recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        recipe.summary.toLowerCase().includes(searchQuery.toLowerCase());
+        recipe.summary?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory =
         !categoryFilter ||
         categoryFilter === "all" ||
@@ -354,9 +354,11 @@ const RecipeCard: FunctionComponent<{
         <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-2 md:mb-3 group-hover:text-orange-600 transition-colors">
           {recipe.title}
         </h3>
-        <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-4 leading-relaxed">
-          {recipe.summary}
-        </p>
+        {recipe.summary && (
+          <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-4 leading-relaxed">
+            {recipe.summary}
+          </p>
+        )}
 
         <div className="flex flex-wrap gap-1 md:gap-2">
           {recipe.tags.slice(0, 3).map((tag) => (
@@ -423,9 +425,11 @@ const RecipeListItem: FunctionComponent<{
           <h3 className="font-bold text-gray-900 dark:text-white mb-1 md:mb-2 text-base md:text-lg lg:text-xl leading-tight group-hover:text-orange-600 transition-colors">
             {recipe.title}
           </h3>
-          <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-2 md:mb-3 leading-relaxed">
-            {recipe.summary}
-          </p>
+          {recipe.summary && (
+            <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-2 md:mb-3 leading-relaxed">
+              {recipe.summary}
+            </p>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 text-xs md:text-sm text-gray-500 dark:text-stone-400">
