@@ -1,10 +1,12 @@
-import type { MetaFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
+import type { LoaderFunction, MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
 import clsx from "clsx";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { getAllRecipes, Tag } from "~/utils/recipes";
+import { getAllRecipes } from "~/utils/recipe-storage.server";
+import type { Recipe, Tag } from "~/utils/recipes";
 
 export const meta: MetaFunction = () => {
   return [
@@ -17,10 +19,15 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const loader: LoaderFunction = async () => {
+  const recipes = getAllRecipes();
+  return json(recipes);
+};
+
 export default function Index() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
-  const recipes = getAllRecipes();
+  const recipes = useLoaderData<Recipe[]>();
 
   const recipesFound = useMemo(
     () =>
@@ -31,24 +38,16 @@ export default function Index() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900">
-      <section className="relative min-h-screen bg-home bg-cover bg-center bg-no-repeat flex flex-col justify-center items-center p-4 md:p-6 lg:p-8">
-        <div className="absolute inset-0 bg-black/20" />
-
-        <div className="relative z-10 text-center max-w-2xl lg:max-w-4xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 md:mb-8 leading-tight">
-            <mark className="text-zinc-50 bg-zinc-900 bg-opacity-50 px-2 md:px-4 py-1 md:py-2 leading-relaxed">
-              {t("appCatchPhrase")}
-            </mark>
-          </h1>
-
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-stone-900 dark:via-stone-800 dark:to-stone-900">
+      <section className="py-12 md:py-16 lg:py-20 px-4 md:px-6 lg:p-8">
+        <div className="max-w-4xl mx-auto text-center">
           <div className="relative mb-8 md:mb-12">
             <input
               type="text"
               placeholder={t("searchRecipes")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full max-w-md lg:max-w-lg mx-auto text-lg md:text-xl rounded-xl px-6 py-4 md:px-8 md:py-5 focus:ring-4 focus:outline-none focus:ring-amber-300 shadow-lg hover:shadow-xl transition-all bg-white dark:bg-stone-800 dark:text-white dark:border-stone-600"
+              className="w-full max-w-md lg:max-w-lg mx-auto text-lg md:text-xl rounded-xl px-6 py-4 md:px-8 md:py-5 focus:ring-4 focus:outline-none focus:ring-orange-300 shadow-lg hover:shadow-xl transition-all bg-white dark:bg-stone-800 dark:text-white dark:border-stone-600"
             />
 
             {search && (
@@ -94,7 +93,7 @@ export default function Index() {
           <div className="grid grid-cols-2 gap-4 md:gap-6 mt-12 max-w-sm md:max-w-md mx-auto">
             <Link
               to="/recipes"
-              className="bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-2xl p-4 md:p-6 text-center border border-orange-100 dark:border-stone-600 hover:bg-white dark:hover:bg-stone-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+              className="bg-white dark:bg-stone-800 backdrop-blur-sm rounded-2xl p-4 md:p-6 text-center border border-orange-100 dark:border-stone-600 hover:bg-white dark:hover:bg-stone-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
             >
               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-red-400 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <span className="text-white text-xl md:text-2xl">📖</span>
@@ -108,18 +107,17 @@ export default function Index() {
             </Link>
 
             <Link
-              to="/recipes?category=quick"
-              className="bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm rounded-2xl p-4 md:p-6 text-center border border-orange-100 dark:border-stone-600 hover:bg-white dark:hover:bg-stone-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+              to="/recipes/new"
+              className="bg-white dark:bg-stone-800 backdrop-blur-sm rounded-2xl p-4 md:p-6 text-center border border-orange-100 dark:border-stone-600 hover:bg-white dark:hover:bg-stone-800 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
             >
               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <span className="text-white text-xl md:text-2xl">⚡</span>
+                <span className="text-white text-xl md:text-2xl">➕</span>
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white text-sm md:text-base">
-                Recettes rapides
+                Ajouter une recette
               </h3>
               <p className="text-xs md:text-sm text-gray-600 dark:text-stone-300 mt-1">
-                {recipes.filter((r) => r.tags.includes("quick")).length}{" "}
-                recettes
+                Créer une nouvelle recette
               </p>
             </Link>
           </div>

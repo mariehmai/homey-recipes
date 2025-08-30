@@ -1,15 +1,33 @@
-import type { MetaFunction } from "@remix-run/node";
-import { useParams } from "@remix-run/react";
+import type { LoaderFunction, MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import clsx from "clsx";
 import { FunctionComponent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
-import { getAllRecipes } from "~/utils/recipes";
+import { getRecipeBySlug } from "~/utils/recipe-storage.server";
+import type { Recipe } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Recipe" }];
+};
+
+export const loader: LoaderFunction = async ({ params }) => {
+  const { slug } = params;
+  
+  if (!slug) {
+    throw new Response("Not Found", { status: 404 });
+  }
+  
+  const recipe = getRecipeBySlug(slug);
+  
+  if (!recipe) {
+    throw new Response("Not Found", { status: 404 });
+  }
+  
+  return json(recipe);
 };
 
 function getUnitLabels(t: (key: string) => string) {
@@ -35,10 +53,8 @@ const tagColors = {
 };
 
 export default function Recipe() {
-  const { slug } = useParams();
   const { t } = useTranslation();
-  const recipes = getAllRecipes();
-  const recipe = recipes.find((r) => r.slug === slug);
+  const recipe = useLoaderData<Recipe>();
   const [selectedTab, setSelectedTab] = useState("ingredients");
   const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(
     new Set()
@@ -47,8 +63,6 @@ export default function Recipe() {
     new Set()
   );
   const [isFavorite, setIsFavorite] = useState(false);
-
-  if (!recipe) return null;
 
   function onToggleIngredient(name: string) {
     setCheckedIngredients((prev) => {

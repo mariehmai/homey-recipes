@@ -1,15 +1,22 @@
-import type { MetaFunction } from "@remix-run/node";
-import { useNavigate, useSearchParams } from "@remix-run/react";
+import type { LoaderFunction, MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
 import clsx from "clsx";
 import { TFunction } from "i18next";
-import { FunctionComponent, useMemo, useState, useEffect } from "react";
+import { FunctionComponent, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Recipe, getAllRecipes, Tag } from "~/utils/recipes";
+import { getAllRecipes } from "~/utils/recipe-storage.server";
+import type { Recipe, Tag } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Recipes" }];
+};
+
+export const loader: LoaderFunction = async () => {
+  const recipes = getAllRecipes();
+  return json(recipes);
 };
 
 const tagColors = {
@@ -29,20 +36,7 @@ export default function Recipes() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid");
-  const [recipes, setRecipes] = useState<Recipe[]>(() => {
-    // Initialize with default recipes for SSR, update on client side
-    if (typeof window !== "undefined") {
-      return getAllRecipes();
-    }
-    return [];
-  });
-
-  // Update recipes on client side to include custom recipes
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setRecipes(getAllRecipes());
-    }
-  }, []);
+  const recipes = useLoaderData<Recipe[]>();
 
   const categories = useMemo(
     () => [
@@ -83,7 +77,7 @@ export default function Recipes() {
         recipe.tags.includes(categoryFilter as Tag);
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, searchParams]);
+  }, [searchQuery, searchParams, recipes]);
 
   function selectCategory(category: string) {
     if (category === "all") {

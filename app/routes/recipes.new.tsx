@@ -1,17 +1,17 @@
 import type { ActionFunction, MetaFunction } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import {
   Form,
   useActionData,
   useNavigation,
-  useNavigate,
 } from "@remix-run/react";
 import { RiAddLine, RiDeleteBinLine } from "@remixicon/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
+import { addRecipe } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
-import { saveCustomRecipe } from "~/utils/recipes";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Add New Recipe" }];
@@ -100,9 +100,9 @@ export const action: ActionFunction = async ({ request }) => {
     tags: tags as Tag[],
   };
 
-  // Since we're using localStorage for persistence, we'll return the recipe data
-  // and handle saving on the client side
-  return Response.json({ success: true, recipe: newRecipe });
+  // Save to server storage
+  const savedRecipe = addRecipe(newRecipe);
+  return redirect(`/recipes/${savedRecipe.slug}`);
 };
 
 interface Ingredient {
@@ -119,20 +119,9 @@ interface Instruction {
 
 export default function NewRecipe() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-
-  // Handle successful recipe creation
-  useEffect(() => {
-    if (actionData?.success && actionData.recipe) {
-      // Save to localStorage
-      saveCustomRecipe(actionData.recipe);
-      // Navigate to recipes list
-      navigate("/recipes");
-    }
-  }, [actionData, navigate]);
 
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
