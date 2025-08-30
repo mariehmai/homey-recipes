@@ -83,7 +83,7 @@ export default function Recipe() {
 
   function ProgressBar() {
     if (selectedTab !== "instructions" || !recipe) return null;
-    
+
     return (
       <div className="mb-6 bg-white dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600 sticky top-[73px] md:top-[81px] z-40">
         <div className="flex items-center justify-between mb-2">
@@ -92,8 +92,7 @@ export default function Recipe() {
           </span>
           <span className="text-sm md:text-base font-bold text-orange-600">
             {Math.round(
-              (checkedInstructions.size / recipe.instructions.length) *
-                100
+              (checkedInstructions.size / recipe.instructions.length) * 100
             )}
             %
           </span>
@@ -103,8 +102,7 @@ export default function Recipe() {
             className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all duration-500"
             style={{
               width: `${
-                (checkedInstructions.size / recipe.instructions.length) *
-                100
+                (checkedInstructions.size / recipe.instructions.length) * 100
               }%`,
             }}
           />
@@ -233,7 +231,9 @@ export default function Recipe() {
                 onClick={() => setIsFavorite(!isFavorite)}
                 className={clsx(
                   "p-2 md:p-3 rounded-full transition-all hover:scale-105",
-                  isFavorite ? "bg-red-100 dark:bg-red-900" : "bg-gray-100 dark:bg-stone-800 hover:bg-gray-200 dark:hover:bg-stone-700"
+                  isFavorite
+                    ? "bg-red-100 dark:bg-red-900"
+                    : "bg-gray-100 dark:bg-stone-800 hover:bg-gray-200 dark:hover:bg-stone-700"
                 )}
               >
                 <span className="text-lg md:text-xl">
@@ -335,8 +335,10 @@ const Tab: FunctionComponent<{
       className={clsx(
         "py-3 px-4 md:py-4 md:px-6 rounded-lg font-medium transition-all text-sm md:text-base text-center lg:text-left lg:w-full",
         {
-          "bg-white dark:bg-stone-600 text-gray-900 dark:text-white shadow-sm": isSelected,
-          "text-gray-600 dark:text-stone-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-stone-600": !isSelected,
+          "bg-white dark:bg-stone-600 text-gray-900 dark:text-white shadow-sm":
+            isSelected,
+          "text-gray-600 dark:text-stone-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-stone-600":
+            !isSelected,
           "flex-1": !isDesktop,
         }
       )}

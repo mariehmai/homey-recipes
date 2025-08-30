@@ -82,7 +82,9 @@ export default function Recipes() {
 
   function formatTime(time?: { min: number; max?: number }) {
     if (!time) return "";
-    return time.max ? `${time.min}-${time.max} ${t("minutes")}` : `${time.min} ${t("minutes")}`;
+    return time.max
+      ? `${time.min}-${time.max} ${t("minutes")}`
+      : `${time.min} ${t("minutes")}`;
   }
 
   const selectedCategory = searchParams.get("category") || "all";

@@ -11,7 +11,12 @@ import {
   useMatch,
   useNavigate,
 } from "@remix-run/react";
-import { RiSliceLine, RiMoonLine, RiSunLine, RiGlobalLine } from "@remixicon/react";
+import {
+  RiSliceLine,
+  RiMoonLine,
+  RiSunLine,
+  RiGlobalLine,
+} from "@remixicon/react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -76,7 +81,7 @@ export default function App() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        languageMenuRef.current && 
+        languageMenuRef.current &&
         !languageMenuRef.current.contains(event.target as Node) &&
         languageButtonRef.current &&
         !languageButtonRef.current.contains(event.target as Node)
@@ -85,9 +90,9 @@ export default function App() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -97,13 +102,13 @@ export default function App() {
 
   const changeLanguage = (newLocale: string) => {
     const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('lng', newLocale);
+    currentUrl.searchParams.set("lng", newLocale);
     window.location.href = currentUrl.toString();
   };
 
   const languages = [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' }
+    { code: "en", name: "English", flag: "🇺🇸" },
+    { code: "fr", name: "Français", flag: "🇫🇷" },
   ];
 
   const getButtonPosition = () => {
@@ -111,17 +116,17 @@ export default function App() {
     const rect = languageButtonRef.current.getBoundingClientRect();
     return {
       top: rect.bottom + 8,
-      right: window.innerWidth - rect.right
+      right: window.innerWidth - rect.right,
     };
   };
 
   const LanguageMenu = () => {
     if (!showLanguageMenu || !isClient) return null;
-    
+
     const position = getButtonPosition();
-    
+
     return createPortal(
-      <div 
+      <div
         ref={languageMenuRef}
         className="fixed bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-lg min-w-[120px] z-[9999]"
         style={{
@@ -137,7 +142,7 @@ export default function App() {
               setShowLanguageMenu(false);
             }}
             className={`w-full text-left px-3 py-2 text-sm hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center space-x-2 ${
-              locale === lang.code ? 'bg-stone-100 dark:bg-stone-700' : ''
+              locale === lang.code ? "bg-stone-100 dark:bg-stone-700" : ""
             }`}
           >
             <span>{lang.flag}</span>
