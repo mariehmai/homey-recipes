@@ -13,7 +13,7 @@ export const Link: FunctionComponent<{
     const pathSegments = location.pathname.split("/").filter(Boolean);
     if (
       pathSegments.length > 0 &&
-      ["fr", "en", "es", "pt", "he"].includes(pathSegments[0])
+      ["fr", "en", "es", "pt", "he", "vi"].includes(pathSegments[0])
     ) {
       return pathSegments[0];
     }

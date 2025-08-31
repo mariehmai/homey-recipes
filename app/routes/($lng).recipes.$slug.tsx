@@ -1,13 +1,16 @@
 import type { LoaderFunction, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, Link } from "@remix-run/react";
+import { RiEditLine } from "@remixicon/react";
 import clsx from "clsx";
 import { FunctionComponent, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
 import { ServingCalculator } from "~/components/ServingCalculator";
+import i18next from "~/i18next.server";
 import { isFavorite, toggleFavorite } from "~/utils/favorites";
+import { buildI18nUrl } from "~/utils/i18n-redirect";
 import { getRecipeBySlug } from "~/utils/recipe-storage.server";
 import type { Recipe } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
@@ -16,8 +19,9 @@ export const meta: MetaFunction = () => {
   return [{ title: "Recipe" }];
 };
 
-export const loader: LoaderFunction = async ({ params }) => {
+export const loader: LoaderFunction = async ({ params, request }) => {
   const { slug } = params;
+  const locale = await i18next.getLocale(request);
 
   if (!slug) {
     throw new Response("Not Found", { status: 404 });
@@ -29,7 +33,7 @@ export const loader: LoaderFunction = async ({ params }) => {
     throw new Response("Not Found", { status: 404 });
   }
 
-  return json(recipe);
+  return json({ recipe, locale });
 };
 
 function getUnitLabels(t: (key: string) => string) {
@@ -58,7 +62,10 @@ const tagColors = {
 
 export default function Recipe() {
   const { t } = useTranslation();
-  const recipe = useLoaderData<Recipe>();
+  const { recipe, locale } = useLoaderData<{
+    recipe: Recipe;
+    locale: string;
+  }>();
   const [selectedTab, setSelectedTab] = useState("ingredients");
   const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(
     new Set()
@@ -270,6 +277,18 @@ export default function Recipe() {
             <BackButton />
 
             <div className="flex items-center space-x-2 md:space-x-3">
+              {!recipe.isDefault && (
+                <Link
+                  to={buildI18nUrl(`/recipes/edit/${recipe.slug}`, locale)}
+                  className="p-2 md:p-3 rounded-full bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 transition-all hover:scale-105"
+                  aria-label={t("editRecipe")}
+                >
+                  <RiEditLine
+                    className="text-blue-600 dark:text-blue-400"
+                    size={18}
+                  />
+                </Link>
+              )}
               <button
                 onClick={handleToggleFavorite}
                 className={clsx(
@@ -317,6 +336,71 @@ export default function Recipe() {
             </p>
           )}
 
+          {/* Author and Rating Info */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
+            <div className="flex items-center space-x-4 text-sm md:text-base text-gray-500 dark:text-stone-400">
+              {recipe.author && (
+                <div className="flex items-center space-x-1">
+                  <span className="text-orange-500">👨‍🍳</span>
+                  <span>
+                    {t("by")}{" "}
+                    <span className="font-medium text-gray-700 dark:text-stone-300">
+                      {recipe.author}
+                    </span>
+                  </span>
+                </div>
+              )}
+              {recipe.createdAt && (
+                <div className="flex items-center space-x-1">
+                  <span className="text-orange-500">📅</span>
+                  <span>{new Date(recipe.createdAt).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Rating Display */}
+            <div className="flex items-center space-x-2">
+              {recipe.averageRating &&
+              recipe.ratingCount &&
+              recipe.ratingCount > 0 ? (
+                <div className="flex items-center space-x-1">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <span
+                        key={i}
+                        className={`text-lg ${
+                          i < Math.floor(recipe.averageRating || 0)
+                            ? "text-yellow-400"
+                            : i < (recipe.averageRating || 0)
+                            ? "text-yellow-200"
+                            : "text-gray-300 dark:text-stone-600"
+                        }`}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-stone-400">
+                    {recipe.averageRating?.toFixed(1)} ({recipe.ratingCount}{" "}
+                    {recipe.ratingCount === 1 ? t("rating") : t("ratings")})
+                  </span>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-500 dark:text-stone-500">
+                  {t("noRatings")}
+                </span>
+              )}
+              {recipe.commentCount && recipe.commentCount > 0 && (
+                <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-stone-400">
+                  <span>💬</span>
+                  <span>
+                    {recipe.commentCount} {t("comments")}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center space-x-4 md:space-x-6 text-sm md:text-base text-gray-500 dark:text-stone-400 mb-6 md:mb-8">
             <div className="flex items-center space-x-1 md:space-x-2">
               <span className="text-orange-500 text-base md:text-lg">⏱️</span>
@@ -340,14 +424,10 @@ export default function Recipe() {
             </div>
           </div>
 
-          <div className="relative w-full h-48 md:h-64 lg:h-80 rounded-xl overflow-hidden bg-gradient-to-br from-orange-100 to-red-100 mb-6 md:mb-8">
-            <div
-              className="w-full h-full bg-cover bg-center transition-transform duration-300 hover:scale-105"
-              style={{
-                backgroundImage: `url('/assets/${recipe.slug}.jpeg')`,
-                backgroundSize: "cover",
-              }}
-            />
+          <div className="relative w-full h-48 md:h-64 lg:h-80 rounded-xl bg-gradient-to-br from-orange-100 to-red-100 mb-6 md:mb-8 flex items-center justify-center">
+            <div className="text-6xl md:text-8xl lg:text-9xl transition-transform duration-300 hover:scale-105">
+              {recipe.emoji || "🍽️"}
+            </div>
           </div>
         </div>
 

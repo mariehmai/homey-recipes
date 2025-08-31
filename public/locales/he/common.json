@@ -88,5 +88,7 @@
   "tags": "תגיות",
   "quantityPlaceholder": "1",
   "ingredientNamePlaceholder": "שם הרכיב...",
-  "stepDescriptionPlaceholder": "תאר את השלב הזה..."
+  "stepDescriptionPlaceholder": "תאר את השלב הזה...",
+  "author": "כותב",
+  "authorPlaceholder": "השם שלך..."
 }

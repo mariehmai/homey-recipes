@@ -27,11 +27,32 @@ export type Recipe = {
   slug: string;
   title: string;
   summary?: string;
+  emoji?: string;
   time?: Time;
   servings?: number;
+  author?: string;
   instructions: Instruction[];
   ingredients: Ingredient[];
   tags: Tag[];
+  createdAt?: string;
+  updatedAt?: string;
+  averageRating?: number;
+  ratingCount?: number;
+  commentCount?: number;
+  isDefault?: boolean;
+};
+
+export type RecipeComment = {
+  id: number;
+  authorName: string;
+  comment: string;
+  createdAt: string;
+};
+
+export type RecipeRating = {
+  rating: number;
+  averageRating: number;
+  ratingCount: number;
 };
 
 // Client-side recipe utilities

@@ -169,15 +169,11 @@ export default function Index() {
                 href={buildUrl(`/recipes/${recipe.slug}`)}
                 className="group bg-white dark:bg-stone-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 dark:border-stone-700 hover:-translate-y-2"
               >
-                <div className="relative h-32 md:h-40 lg:h-48 bg-gradient-to-br from-orange-100 to-red-100">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
-                    style={{
-                      backgroundImage: `url('/assets/${recipe.slug}.jpeg')`,
-                      backgroundSize: "cover",
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                <div className="relative h-32 md:h-40 lg:h-48 bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
+                  <div className="text-4xl md:text-6xl lg:text-7xl transition-transform duration-300 group-hover:scale-110">
+                    {recipe.emoji || "🍽️"}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
 
                   <div className="absolute bottom-2 md:bottom-3 left-2 md:left-3">
                     <div className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 md:px-3 md:py-1.5 flex items-center space-x-1">

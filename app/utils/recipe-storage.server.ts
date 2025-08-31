@@ -1,5 +1,5 @@
-import { queries, initializeDatabase } from "./db.server";
-import type { Recipe } from "./recipes";
+import { queries, initializeDatabase, db } from "./db.server";
+import type { Recipe, RecipeComment } from "./recipes";
 import { seedDefaultRecipes } from "./seed.server";
 
 // Initialize database on first import
@@ -17,13 +17,20 @@ interface DatabaseRow {
   slug: string;
   title: string;
   summary: string;
+  emoji: string | null;
   prep_time: number | null;
   cook_time: number | null;
   servings: number | null;
+  author: string;
   tags: string;
   ingredients: string;
   instructions: string;
   is_default?: boolean;
+  created_at: string;
+  updated_at: string;
+  average_rating: number;
+  rating_count: number;
+  comment_count: number;
 }
 
 // Convert database row to Recipe object
@@ -32,6 +39,7 @@ function dbRowToRecipe(row: DatabaseRow): Recipe {
     slug: row.slug,
     title: row.title,
     summary: row.summary,
+    emoji: row.emoji || undefined,
     time: row.prep_time
       ? {
           min: row.prep_time,
@@ -39,9 +47,16 @@ function dbRowToRecipe(row: DatabaseRow): Recipe {
         }
       : undefined,
     servings: row.servings || undefined,
+    author: row.author,
     tags: JSON.parse(row.tags || "[]"),
     ingredients: JSON.parse(row.ingredients),
     instructions: JSON.parse(row.instructions),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    averageRating: row.average_rating,
+    ratingCount: row.rating_count,
+    commentCount: row.comment_count,
+    isDefault: row.is_default || false,
   };
 }
 
@@ -102,12 +117,14 @@ export function addRecipe(recipe: Recipe): Recipe {
       finalRecipe.slug,
       finalRecipe.title,
       finalRecipe.summary || "",
+      finalRecipe.emoji || null,
       finalRecipe.time?.min || null,
       finalRecipe.time?.max || null,
       finalRecipe.servings || null,
       JSON.stringify(finalRecipe.tags),
       JSON.stringify(finalRecipe.ingredients),
       JSON.stringify(finalRecipe.instructions),
+      finalRecipe.author || "Anonymous",
       0 // is_default = false (user recipe)
     );
 
@@ -145,12 +162,14 @@ export function updateRecipe(
     const result = queries.updateRecipe.run(
       updatedRecipe.title,
       updatedRecipe.summary || "",
+      updatedRecipe.emoji || null,
       updatedRecipe.time?.min || null,
       updatedRecipe.time?.max || null,
       updatedRecipe.servings || null,
       JSON.stringify(updatedRecipe.tags),
       JSON.stringify(updatedRecipe.ingredients),
       JSON.stringify(updatedRecipe.instructions),
+      updatedRecipe.author || "Anonymous",
       slug
     );
 
@@ -243,5 +262,177 @@ export function getRecipeStats() {
   } catch (error) {
     console.error("Error fetching recipe stats:", error);
     return { total: 0, default: 0, custom: 0 };
+  }
+}
+
+// Rating functions
+export function getUserRating(
+  recipeSlug: string,
+  userIp: string
+): number | null {
+  ensureInitialized();
+
+  if (!queries) {
+    throw new Error("Database not initialized");
+  }
+
+  try {
+    const result = queries.getUserRating.get(recipeSlug, userIp) as
+      | { rating: number }
+      | undefined;
+    return result ? result.rating : null;
+  } catch (error) {
+    console.error("Error fetching user rating:", error);
+    return null;
+  }
+}
+
+export function addOrUpdateRating(
+  recipeSlug: string,
+  rating: number,
+  userIp: string
+): boolean {
+  ensureInitialized();
+
+  if (!queries) {
+    throw new Error("Database not initialized");
+  }
+
+  try {
+    const existingRating = getUserRating(recipeSlug, userIp);
+
+    if (existingRating !== null) {
+      // Update existing rating
+      const result = queries.updateRating.run(rating, recipeSlug, userIp);
+      return result.changes > 0;
+    } else {
+      // Insert new rating
+      const result = queries.insertRating.run(recipeSlug, rating, userIp);
+      return result.changes > 0;
+    }
+  } catch (error) {
+    console.error("Error adding/updating rating:", error);
+    return false;
+  }
+}
+
+// Comment functions
+
+export function getRecipeComments(recipeSlug: string): RecipeComment[] {
+  ensureInitialized();
+
+  if (!queries) {
+    throw new Error("Database not initialized");
+  }
+
+  try {
+    const rows = queries.getRecipeComments.all(recipeSlug) as Array<{
+      id: number;
+      author_name: string;
+      comment: string;
+      created_at: string;
+    }>;
+
+    return rows.map((row) => ({
+      id: row.id,
+      authorName: row.author_name,
+      comment: row.comment,
+      createdAt: row.created_at,
+    }));
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    return [];
+  }
+}
+
+export function addComment(
+  recipeSlug: string,
+  authorName: string,
+  comment: string,
+  userIp: string
+): boolean {
+  ensureInitialized();
+
+  if (!queries) {
+    throw new Error("Database not initialized");
+  }
+
+  try {
+    const result = queries.insertComment.run(
+      recipeSlug,
+      authorName,
+      comment,
+      userIp
+    );
+    return result.changes > 0;
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    return false;
+  }
+}
+
+// Get latest recipes (newest first)
+export function getLatestRecipes(limit: number = 10): Recipe[] {
+  ensureInitialized();
+
+  if (!queries) {
+    console.error("Database not initialized");
+    return [];
+  }
+
+  try {
+    const query = db.prepare(`
+      SELECT r.*,
+        COALESCE(AVG(rt.rating), 0) as average_rating,
+        COUNT(rt.rating) as rating_count,
+        COUNT(c.id) as comment_count
+      FROM recipes r
+      LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
+      LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
+      GROUP BY r.id
+      ORDER BY r.created_at DESC
+      LIMIT ?
+    `);
+
+    const rows = query.all(limit) as DatabaseRow[];
+    return rows.map(dbRowToRecipe);
+  } catch (error) {
+    console.error("Error fetching latest recipes:", error);
+    return [];
+  }
+}
+
+// Get trendy recipes (highest rated with minimum ratings)
+export function getTrendyRecipes(
+  limit: number = 10,
+  minRatings: number = 3
+): Recipe[] {
+  ensureInitialized();
+
+  if (!queries) {
+    console.error("Database not initialized");
+    return [];
+  }
+
+  try {
+    const query = db.prepare(`
+      SELECT r.*,
+        AVG(rt.rating) as average_rating,
+        COUNT(rt.rating) as rating_count,
+        COUNT(c.id) as comment_count
+      FROM recipes r
+      LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
+      LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
+      GROUP BY r.id
+      HAVING COUNT(rt.rating) >= ? AND AVG(rt.rating) >= 4.0
+      ORDER BY AVG(rt.rating) DESC, COUNT(rt.rating) DESC
+      LIMIT ?
+    `);
+
+    const rows = query.all(minRatings, limit) as DatabaseRow[];
+    return rows.map(dbRowToRecipe);
+  } catch (error) {
+    console.error("Error fetching trendy recipes:", error);
+    return [];
   }
 }

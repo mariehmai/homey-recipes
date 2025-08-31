@@ -21,7 +21,12 @@ import type {
   MetaFunction,
 } from "@remix-run/node";
 import { redirect, json } from "@remix-run/node";
-import { Form, useActionData, useNavigation } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from "@remix-run/react";
 import { RiAddLine, RiDeleteBinLine, RiDragMoveLine } from "@remixicon/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -29,24 +34,38 @@ import { useTranslation } from "react-i18next";
 import { BackButton } from "~/components/BackButton";
 import i18next from "~/i18next.server";
 import { buildI18nUrl } from "~/utils/i18n-redirect";
-import { addRecipe } from "~/utils/recipe-storage.server";
+import { getRecipeBySlug, updateRecipe } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const locale = await i18next.getLocale(request);
-  return json({ locale });
+  const slug = params.slug;
+
+  if (!slug) {
+    throw new Response("Recipe not found", { status: 404 });
+  }
+
+  const recipe = getRecipeBySlug(slug);
+
+  if (!recipe) {
+    throw new Response("Recipe not found", { status: 404 });
+  }
+
+  return json({ locale, recipe });
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const locale = data?.locale || "fr";
+  const recipe = data?.recipe;
 
   const titles: Record<string, string> = {
-    fr: "Ajouter une nouvelle recette",
-    en: "Add New Recipe",
-    es: "Añadir nueva receta",
-    pt: "Adicionar nova receita",
-    he: "הוסף מתכון חדש",
+    fr: `Modifier ${recipe?.title || "la recette"}`,
+    en: `Edit ${recipe?.title || "Recipe"}`,
+    es: `Editar ${recipe?.title || "receta"}`,
+    pt: `Editar ${recipe?.title || "receita"}`,
+    he: `ערוך ${recipe?.title || "מתכון"}`,
+    vi: `Chỉnh sửa ${recipe?.title || "công thức"}`,
   };
 
   return [{ title: titles[locale] || titles.fr }];
@@ -56,20 +75,14 @@ export const handle = {
   i18n: "common",
 };
 
-function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Remove accents
-    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
-    .trim();
-}
-
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ params, request }) => {
   const formData = await request.formData();
   const locale = await i18next.getLocale(request);
+  const slug = params.slug;
+
+  if (!slug) {
+    return Response.json({ error: "Recipe not found" }, { status: 404 });
+  }
 
   const title = formData.get("title") as string;
   const summary = formData.get("summary") as string;
@@ -120,15 +133,11 @@ export const action: ActionFunction = async ({ request }) => {
     ingredients.length === 0 ||
     instructions.length === 0
   ) {
-    return Response.json(
-      { error: "fillAllRequiredFields" }, // Will be translated on frontend
-      { status: 400 }
-    );
+    return Response.json({ error: "fillAllRequiredFields" }, { status: 400 });
   }
 
-  // Create new recipe
-  const newRecipe: Recipe = {
-    slug: generateSlug(title),
+  // Update recipe
+  const updatedRecipe = {
     title: title.trim(),
     summary: summary.trim(),
     emoji: emoji?.trim() || undefined,
@@ -143,12 +152,13 @@ export const action: ActionFunction = async ({ request }) => {
     tags: tags as Tag[],
   };
 
-  // Save to server storage
-  const savedRecipe = addRecipe(newRecipe);
+  const result = updateRecipe(slug, updatedRecipe);
 
-  // Build redirect URL with proper language prefix
-  const redirectUrl = buildI18nUrl(`/recipes/${savedRecipe.slug}`, locale);
+  if (!result) {
+    return Response.json({ error: "Failed to update recipe" }, { status: 500 });
+  }
 
+  const redirectUrl = buildI18nUrl(`/recipes/${slug}`, locale);
   return redirect(redirectUrl);
 };
 
@@ -333,8 +343,9 @@ function SortableInstruction({
   );
 }
 
-export default function NewRecipe() {
+export default function EditRecipe() {
   const { t } = useTranslation();
+  const { recipe } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -346,22 +357,30 @@ export default function NewRecipe() {
     })
   );
 
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-  const [emoji, setEmoji] = useState("");
-  const [author, setAuthor] = useState("");
-  const [prepTime, setPrepTime] = useState("");
-  const [cookTime, setCookTime] = useState("");
-  const [servings, setServings] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [title, setTitle] = useState(recipe.title);
+  const [summary, setSummary] = useState(recipe.summary || "");
+  const [emoji, setEmoji] = useState(recipe.emoji || "");
+  const [author, setAuthor] = useState(recipe.author || "");
+  const [prepTime, setPrepTime] = useState(recipe.time?.min?.toString() || "");
+  const [cookTime, setCookTime] = useState(recipe.time?.max?.toString() || "");
+  const [servings, setServings] = useState(recipe.servings?.toString() || "");
+  const [selectedTags, setSelectedTags] = useState<string[]>(recipe.tags || []);
 
-  const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { id: "1", name: "", quantity: "", unit: "g" },
-  ]);
+  const [ingredients, setIngredients] = useState<Ingredient[]>(() =>
+    recipe.ingredients.map((ing, index) => ({
+      id: `ingredient-${index}`,
+      name: ing.name,
+      quantity: ing.quantity.toString(),
+      unit: ing.unit,
+    }))
+  );
 
-  const [instructions, setInstructions] = useState<Instruction[]>([
-    { id: "1", description: "" },
-  ]);
+  const [instructions, setInstructions] = useState<Instruction[]>(() =>
+    recipe.instructions.map((inst, index) => ({
+      id: `instruction-${index}`,
+      description: inst.description,
+    }))
+  );
 
   const availableTags = [
     "quick",
@@ -386,7 +405,7 @@ export default function NewRecipe() {
   ];
 
   const addIngredient = () => {
-    const newId = Date.now().toString();
+    const newId = `ingredient-${Date.now()}`;
     setIngredients([
       ...ingredients,
       { id: newId, name: "", quantity: "", unit: "g" },
@@ -412,7 +431,7 @@ export default function NewRecipe() {
   };
 
   const addInstruction = () => {
-    const newId = Date.now().toString();
+    const newId = `instruction-${Date.now()}`;
     setInstructions([...instructions, { id: newId, description: "" }]);
   };
 
@@ -469,7 +488,7 @@ export default function NewRecipe() {
           <div className="flex items-center justify-between">
             <BackButton />
             <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-              {t("addNewRecipe")}
+              {t("editRecipe")}
             </h1>
             <div></div>
           </div>
@@ -502,7 +521,7 @@ export default function NewRecipe() {
                   id="title"
                   type="text"
                   name="title"
-                  defaultValue={title}
+                  value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                   placeholder={t("recipeTitlePlaceholder", {
@@ -522,7 +541,7 @@ export default function NewRecipe() {
                 <textarea
                   id="summary"
                   name="summary"
-                  defaultValue={summary}
+                  value={summary}
                   onChange={(e) => setSummary(e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -543,7 +562,7 @@ export default function NewRecipe() {
                   id="emoji"
                   type="text"
                   name="emoji"
-                  defaultValue={emoji}
+                  value={emoji}
                   onChange={(e) => setEmoji(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                   placeholder="🍽️"
@@ -561,7 +580,7 @@ export default function NewRecipe() {
                   id="author"
                   type="text"
                   name="author"
-                  defaultValue={author}
+                  value={author}
                   onChange={(e) => setAuthor(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                   placeholder={t("authorPlaceholder")}
@@ -580,7 +599,7 @@ export default function NewRecipe() {
                     id="prepTime"
                     type="number"
                     name="prepTime"
-                    defaultValue={prepTime}
+                    value={prepTime}
                     onChange={(e) => setPrepTime(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder={t("prepTimePlaceholder")}
@@ -596,7 +615,7 @@ export default function NewRecipe() {
                   <input
                     type="number"
                     name="cookTime"
-                    defaultValue={cookTime}
+                    value={cookTime}
                     onChange={(e) => setCookTime(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder={t("cookTimePlaceholder")}
@@ -615,7 +634,7 @@ export default function NewRecipe() {
                     id="servings"
                     type="number"
                     name="servings"
-                    defaultValue={servings}
+                    value={servings}
                     onChange={(e) => setServings(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder={t("servingsPlaceholder")}
@@ -743,7 +762,7 @@ export default function NewRecipe() {
               disabled={isSubmitting}
               className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? t("creatingRecipe") : t("createRecipe")}
+              {isSubmitting ? t("updatingRecipe") : t("updateRecipe")}
             </button>
           </div>
         </Form>

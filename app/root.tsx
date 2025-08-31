@@ -108,7 +108,7 @@ export default function App() {
     // Remove current language prefix if it exists
     if (
       pathSegments.length > 0 &&
-      ["fr", "en", "es", "pt", "he"].includes(pathSegments[0])
+      ["fr", "en", "es", "pt", "he", "vi"].includes(pathSegments[0])
     ) {
       pathSegments.shift();
     }
@@ -131,6 +131,7 @@ export default function App() {
     { code: "es", name: "Español", flag: "🇪🇸" },
     { code: "pt", name: "Português", flag: "🇵🇹" },
     { code: "he", name: "עברית", flag: "🇮🇱" },
+    { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
   ];
 
   const getButtonPosition = () => {

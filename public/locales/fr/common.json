@@ -88,5 +88,17 @@
   "tags": "Tags",
   "quantityPlaceholder": "1",
   "ingredientNamePlaceholder": "Nom de l'ingrédient...",
-  "stepDescriptionPlaceholder": "Décrivez cette étape..."
+  "stepDescriptionPlaceholder": "Décrivez cette étape...",
+  "author": "Auteur",
+  "authorPlaceholder": "Votre nom...",
+  "editRecipe": "Modifier la recette",
+  "updateRecipe": "Mettre à jour la recette",
+  "updatingRecipe": "Mise à jour de la recette...",
+  "by": "par",
+  "createdOn": "Créé le",
+  "rating": "Note",
+  "ratings": "notes",
+  "comments": "Commentaires",
+  "noRatings": "Aucune note encore",
+  "stars": "étoiles"
 }

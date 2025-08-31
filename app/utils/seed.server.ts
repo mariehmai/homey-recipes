@@ -7,6 +7,7 @@ const defaultRecipes: Recipe[] = [
     title: "Riz Sauté",
     summary:
       "Riz sauté à base de restes de la veille, parfait pour utiliser les restes",
+    emoji: "🍚",
     ingredients: [
       { unit: "n", name: "carottes", quantity: "3" },
       { unit: "n", quantity: "0.5", name: "blanc de poireaux" },
@@ -56,6 +57,7 @@ const defaultRecipes: Recipe[] = [
     title: "Poulet au curry jaune",
     summary:
       "Curry thaï authentique au lait de coco, doux et parfumé aux épices traditionnelles",
+    emoji: "🍛",
     ingredients: [
       { unit: "tbsp", quantity: "5", name: "pâte de curry jaune" },
       { unit: "g", quantity: "900", name: "cuisses de poulet avec os" },
@@ -103,6 +105,7 @@ const defaultRecipes: Recipe[] = [
     title: "Pancakes à la banane",
     summary:
       "Pancakes moelleux aux bananes écrasées, parfaits pour un petit-déjeuner gourmand",
+    emoji: "🥞",
     ingredients: [
       { unit: "n", name: "bananes mûres", quantity: "2" },
       { unit: "g", quantity: "200", name: "farine" },
@@ -131,6 +134,7 @@ const defaultRecipes: Recipe[] = [
     title: "Crêpes sucrées",
     summary:
       "Crêpes françaises classiques fines et délicates, parfaites pour le dessert",
+    emoji: "🥞",
     ingredients: [
       { unit: "g", quantity: "250", name: "farine tout usage" },
       { unit: "n", quantity: "", name: "pincée de sel" },
@@ -208,12 +212,14 @@ export function seedDefaultRecipes(): boolean {
           recipe.slug,
           recipe.title,
           recipe.summary || "",
+          recipe.emoji || null,
           recipe.time?.min || null,
           recipe.time?.max || null,
           recipe.servings || null,
           JSON.stringify(recipe.tags),
           JSON.stringify(recipe.ingredients),
           JSON.stringify(recipe.instructions),
+          recipe.author || "Chef",
           1 // is_default = true
         );
 

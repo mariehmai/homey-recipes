@@ -88,5 +88,7 @@
   "tags": "Tags",
   "quantityPlaceholder": "1",
   "ingredientNamePlaceholder": "Nome do ingrediente...",
-  "stepDescriptionPlaceholder": "Descreva este passo..."
+  "stepDescriptionPlaceholder": "Descreva este passo...",
+  "author": "Autor",
+  "authorPlaceholder": "Seu nome..."
 }

@@ -314,16 +314,11 @@ const RecipeCard: FunctionComponent<{
         onClick={onRecipeClick}
       />
 
-      <div className="relative h-32 md:h-40 lg:h-48 bg-gradient-to-br from-orange-100 to-red-100">
-        <img
-          src={`/assets/${recipe.slug}.jpeg`}
-          alt={recipe.title}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      <div className="relative h-32 md:h-40 lg:h-48 bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
+        <div className="text-4xl md:text-6xl lg:text-7xl transition-transform duration-300 group-hover:scale-110">
+          {recipe.emoji || "🍽️"}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
 
         <button
           className={clsx(
@@ -411,14 +406,10 @@ const RecipeListItem: FunctionComponent<{
       </button>
 
       <div className="flex space-x-4 md:space-x-6 pr-12">
-        <div className="relative w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-lg overflow-hidden flex-shrink-0">
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
-            style={{
-              backgroundImage: `url('/assets/${recipe.slug}.jpeg')`,
-              backgroundSize: "cover",
-            }}
-          />
+        <div className="relative w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-lg bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center flex-shrink-0">
+          <div className="text-xl md:text-2xl lg:text-3xl transition-transform duration-300 group-hover:scale-110">
+            {recipe.emoji || "🍽️"}
+          </div>
         </div>
 
         <div className="flex-1 min-w-0">
