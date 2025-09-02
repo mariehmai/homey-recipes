@@ -41,9 +41,17 @@ import { toTitleCase } from "~/utils/stringExtensions";
 import { getAllTags } from "~/utils/tag-storage.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const user = await authenticator.isAuthenticated(request);
+
+  if (!user) {
+    const locale = await i18next.getLocale(request);
+    const loginUrl = locale === "fr" ? "/login" : `/${locale}/login`;
+    return redirect(loginUrl);
+  }
+
   const locale = await i18next.getLocale(request);
   const availableTags = getAllTags();
-  return json({ locale, availableTags });
+  return json({ locale, availableTags, user });
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -76,9 +84,17 @@ function generateSlug(title: string): string {
 }
 
 export const action: ActionFunction = async ({ request }) => {
+  const user = await authenticator.isAuthenticated(request);
+
+  // Redirect to login if user is not authenticated
+  if (!user) {
+    const locale = await i18next.getLocale(request);
+    const loginUrl = locale === "fr" ? "/login" : `/${locale}/login`;
+    return redirect(loginUrl);
+  }
+
   const formData = await request.formData();
   const locale = await i18next.getLocale(request);
-  const user = await authenticator.isAuthenticated(request);
 
   const title = formData.get("title") as string;
   const summary = formData.get("summary") as string;

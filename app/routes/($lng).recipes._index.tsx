@@ -7,6 +7,7 @@ import { FunctionComponent, useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { RatingDisplay } from "~/components/StarRating";
+import { authenticator } from "~/utils/auth.server";
 import { getFavorites, toggleFavorite } from "~/utils/favorites";
 import { getAllRecipes } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
@@ -17,10 +18,11 @@ export const meta: MetaFunction = () => {
   return [{ title: "Recipes" }];
 };
 
-export const loader: LoaderFunction = async () => {
-  const recipes = getAllRecipes();
+export const loader: LoaderFunction = async ({ request }) => {
+  const user = await authenticator.isAuthenticated(request);
+  const recipes = getAllRecipes(user?.id);
   const availableTags = getAllTags();
-  return json({ recipes, availableTags });
+  return json({ recipes, availableTags, user });
 };
 
 export default function Recipes() {
@@ -32,7 +34,7 @@ export default function Recipes() {
   const [favoriteRecipes, setFavoriteRecipes] = useState<string[]>([]);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [tagSearchQuery, setTagSearchQuery] = useState("");
-  const { recipes, availableTags } = useLoaderData<{
+  const { recipes, availableTags, user } = useLoaderData<{
     recipes: Recipe[];
     availableTags: Array<{
       id: number;
@@ -41,6 +43,7 @@ export default function Recipes() {
       is_default: boolean;
       created_at: string;
     }>;
+    user: { id: string; name: string; email: string; avatar: string } | null;
   }>();
 
   // Load favorites from localStorage
@@ -58,6 +61,15 @@ export default function Recipes() {
           count: recipes.filter((r) => favoriteRecipes.includes(r.slug)).length,
         },
       ];
+
+      // Add "My Recipes" category only for authenticated users
+      if (user) {
+        staticCategories.push({
+          id: "my-recipes",
+          name: t("myRecipes") || "My Recipes",
+          count: recipes.filter((r) => r.userId === user.id).length,
+        });
+      }
 
       // Popular recipe categories commonly found on recipe websites
       const popularTagNames = [
@@ -118,10 +130,13 @@ export default function Recipes() {
         categoryFilter === "all" ||
         (categoryFilter === "favorites" &&
           favoriteRecipes.includes(recipe.slug)) ||
+        (categoryFilter === "my-recipes" &&
+          user &&
+          recipe.userId === user.id) ||
         recipe.tags.includes(categoryFilter as Tag);
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, searchParams, recipes, favoriteRecipes]);
+  }, [searchQuery, searchParams, recipes, favoriteRecipes, user]);
 
   function selectCategory(category: string) {
     if (category === "all") {
@@ -168,13 +183,15 @@ export default function Recipes() {
               </div>
             </div>
 
-            <a
-              href="/recipes/new"
-              className="flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm md:text-base"
-            >
-              <span className="text-lg">➕</span>
-              <span className="hidden sm:inline">{t("addNewRecipe")}</span>
-            </a>
+            {user && (
+              <a
+                href="/recipes/new"
+                className="flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm md:text-base"
+              >
+                <span className="text-lg">➕</span>
+                <span className="hidden sm:inline">{t("addNewRecipe")}</span>
+              </a>
+            )}
           </div>
 
           <div className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-6">

@@ -287,7 +287,7 @@ export default function App() {
             <div className="flex items-center space-x-6">
               <div className="hidden md:flex items-center space-x-1 bg-stone-100 dark:bg-stone-800 rounded-full p-1">
                 <Link to="/recipes" label={t("navRecipes")} />
-                <Link to="/recipes/new" label={t("navAddRecipe")} />
+                {user && <Link to="/recipes/new" label={t("navAddRecipe")} />}
                 <Link to="/converter" label={t("unitConverter")} />
               </div>
 
@@ -350,7 +350,7 @@ export default function App() {
             <div className="flex justify-center">
               <div className="bg-stone-100 dark:bg-stone-800 rounded-full p-1">
                 <Link to="/recipes" label={t("navRecipes")} />
-                <Link to="/recipes/new" label={t("navAddRecipe")} />
+                {user && <Link to="/recipes/new" label={t("navAddRecipe")} />}
                 <Link to="/converter" label={t("unitConverter")} />
               </div>
             </div>

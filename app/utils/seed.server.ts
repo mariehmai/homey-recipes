@@ -200,6 +200,229 @@ const defaultRecipes: Recipe[] = [
     tags: ["sweet", "dessert"],
     isPublic: true,
   },
+  {
+    slug: "shakshuka-vegan",
+    title: "Vegan Shakshuka",
+    summary:
+      "A plant-based version of the Middle Eastern classic with tomatoes, bell peppers, and aromatic spices",
+    emoji: "🍅",
+    ingredients: [
+      { unit: "tbsp", quantity: "2", name: "olive oil" },
+      { unit: "n", quantity: "1", name: "large onion, diced" },
+      { unit: "n", quantity: "1", name: "red bell pepper, diced" },
+      { unit: "n", quantity: "4", name: "garlic cloves, minced" },
+      { unit: "tsp", quantity: "1", name: "ground cumin" },
+      { unit: "tsp", quantity: "1", name: "paprika" },
+      { unit: "tsp", quantity: "0.5", name: "cayenne pepper" },
+      { unit: "g", quantity: "800", name: "canned crushed tomatoes" },
+      { unit: "tsp", quantity: "1", name: "salt" },
+      { unit: "tsp", quantity: "0.5", name: "black pepper" },
+      { unit: "n", quantity: "0.25", name: "cup fresh parsley, chopped" },
+      { unit: "n", quantity: "", name: "pita bread for serving" },
+    ],
+    time: { min: 25, max: 35 },
+    instructions: [
+      {
+        description: "Heat olive oil in a large skillet over medium heat.",
+      },
+      {
+        description:
+          "Add onion and bell pepper, cook for 5 minutes until softened.",
+      },
+      {
+        description:
+          "Add garlic, cumin, paprika, and cayenne. Cook for 1 minute until fragrant.",
+      },
+      {
+        description:
+          "Add crushed tomatoes, salt, and pepper. Simmer for 15-20 minutes.",
+      },
+      {
+        description: "Taste and adjust seasoning as needed.",
+      },
+      {
+        description:
+          "Garnish with fresh parsley and serve with warm pita bread.",
+      },
+    ],
+    tags: ["vegan", "savory", "quick"],
+    isPublic: true,
+  },
+  {
+    slug: "pho-bo",
+    title: "Pho Bo (Vietnamese Beef Soup)",
+    summary:
+      "Authentic Vietnamese beef noodle soup with aromatic broth, rice noodles, and tender beef",
+    emoji: "🍜",
+    ingredients: [
+      { unit: "kg", quantity: "1", name: "beef bones" },
+      { unit: "g", quantity: "500", name: "beef brisket" },
+      { unit: "n", quantity: "1", name: "large onion, halved" },
+      { unit: "n", quantity: "1", name: "piece of ginger, 5cm" },
+      { unit: "n", quantity: "3", name: "star anise" },
+      { unit: "n", quantity: "1", name: "cinnamon stick" },
+      { unit: "n", quantity: "6", name: "cloves" },
+      { unit: "tbsp", quantity: "2", name: "fish sauce" },
+      { unit: "tbsp", quantity: "1", name: "salt" },
+      { unit: "g", quantity: "400", name: "rice noodles (banh pho)" },
+      { unit: "g", quantity: "200", name: "raw beef sirloin, thinly sliced" },
+      { unit: "n", quantity: "", name: "bean sprouts" },
+      { unit: "n", quantity: "", name: "fresh herbs (cilantro, basil, mint)" },
+      { unit: "n", quantity: "", name: "lime wedges" },
+    ],
+    time: { min: 180, max: 240 },
+    instructions: [
+      {
+        description:
+          "Char onion and ginger over open flame until blackened. Rinse and set aside.",
+      },
+      {
+        description:
+          "Toast star anise, cinnamon, and cloves in a dry pan for 2 minutes.",
+      },
+      {
+        description:
+          "In a large pot, add beef bones, brisket, charred vegetables, and spices.",
+      },
+      {
+        description:
+          "Cover with water and bring to a boil. Skim foam and simmer for 3-4 hours.",
+      },
+      {
+        description: "Remove brisket after 1 hour, slice thinly when cool.",
+      },
+      {
+        description: "Strain broth and season with fish sauce and salt.",
+      },
+      {
+        description: "Cook rice noodles according to package instructions.",
+      },
+      {
+        description:
+          "Serve noodles in bowls, top with cooked and raw beef, pour hot broth over.",
+      },
+      {
+        description:
+          "Serve with bean sprouts, herbs, and lime wedges on the side.",
+      },
+    ],
+    tags: ["soup", "savory"],
+    isPublic: true,
+  },
+  {
+    slug: "frango-assado",
+    title: "Frango Assado (Portuguese Roasted Chicken)",
+    summary:
+      "Traditional Portuguese roasted chicken marinated in garlic, bay leaves, and white wine",
+    emoji: "🍗",
+    ingredients: [
+      { unit: "kg", quantity: "1.5", name: "whole chicken" },
+      { unit: "n", quantity: "8", name: "garlic cloves, minced" },
+      { unit: "n", quantity: "4", name: "bay leaves" },
+      { unit: "mL", quantity: "120", name: "white wine" },
+      { unit: "tbsp", quantity: "3", name: "olive oil" },
+      { unit: "tbsp", quantity: "2", name: "paprika" },
+      { unit: "tsp", quantity: "2", name: "salt" },
+      { unit: "tsp", quantity: "1", name: "black pepper" },
+      { unit: "n", quantity: "2", name: "lemons, juiced" },
+      { unit: "kg", quantity: "1", name: "potatoes, quartered" },
+      { unit: "n", quantity: "2", name: "onions, sliced" },
+    ],
+    time: { min: 90, max: 120 },
+    instructions: [
+      {
+        description:
+          "Mix garlic, bay leaves, wine, olive oil, paprika, salt, pepper, and lemon juice.",
+      },
+      {
+        description:
+          "Marinate chicken in this mixture for at least 2 hours or overnight.",
+      },
+      {
+        description: "Preheat oven to 200°C (400°F).",
+      },
+      {
+        description: "Place chicken in roasting pan with potatoes and onions.",
+      },
+      {
+        description: "Pour marinade over chicken and vegetables.",
+      },
+      {
+        description:
+          "Roast for 60-75 minutes until chicken is golden and cooked through.",
+      },
+      {
+        description: "Baste every 20 minutes with pan juices.",
+      },
+      {
+        description: "Let rest for 10 minutes before carving and serving.",
+      },
+    ],
+    tags: ["savory"],
+    isPublic: true,
+  },
+  {
+    slug: "paella-valenciana",
+    title: "Paella Valenciana",
+    summary:
+      "Classic Spanish rice dish from Valencia with chicken, rabbit, beans, and saffron",
+    emoji: "🥘",
+    ingredients: [
+      { unit: "g", quantity: "400", name: "bomba rice or short-grain rice" },
+      { unit: "kg", quantity: "0.5", name: "chicken, cut into pieces" },
+      { unit: "g", quantity: "300", name: "rabbit, cut into pieces" },
+      { unit: "g", quantity: "200", name: "green beans, trimmed" },
+      { unit: "g", quantity: "200", name: "lima beans" },
+      { unit: "n", quantity: "2", name: "red bell peppers, sliced" },
+      { unit: "n", quantity: "4", name: "tomatoes, grated" },
+      { unit: "mL", quantity: "100", name: "olive oil" },
+      { unit: "L", quantity: "1.5", name: "chicken stock" },
+      { unit: "tsp", quantity: "1", name: "saffron threads" },
+      { unit: "n", quantity: "4", name: "garlic cloves, minced" },
+      { unit: "n", quantity: "6", name: "rosemary sprigs" },
+      { unit: "tsp", quantity: "2", name: "salt" },
+      { unit: "n", quantity: "", name: "lemon wedges for serving" },
+    ],
+    time: { min: 45, max: 60 },
+    instructions: [
+      {
+        description:
+          "Heat olive oil in a 15-inch paella pan over medium-high heat.",
+      },
+      {
+        description:
+          "Season chicken and rabbit with salt, brown on all sides. Set aside.",
+      },
+      {
+        description:
+          "Add green beans, lima beans, and bell peppers. Cook for 5 minutes.",
+      },
+      {
+        description:
+          "Add garlic and grated tomatoes. Cook until tomatoes are reduced.",
+      },
+      {
+        description:
+          "Return meat to pan, add rice and stir to coat with sofrito.",
+      },
+      {
+        description:
+          "Add hot stock infused with saffron and rosemary. Season with salt.",
+      },
+      {
+        description:
+          "Simmer for 18-20 minutes without stirring. Rotate pan occasionally.",
+      },
+      {
+        description: "Let rest for 5 minutes covered with a clean towel.",
+      },
+      {
+        description: "Serve with lemon wedges.",
+      },
+    ],
+    tags: ["savory", "spicy"],
+    isPublic: true,
+  },
 ];
 
 export function seedDefaultTags(): boolean {
