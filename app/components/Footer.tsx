@@ -34,7 +34,11 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl">
-                <span className="text-white text-xl">🍳</span>
+                <img
+                  alt="app-logo"
+                  className="text-white text-xl"
+                  src="/favicon.svg"
+                />
               </div>
               <h3 className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
                 {t("homeyRecipesTitle")}

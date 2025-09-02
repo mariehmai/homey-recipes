@@ -100,5 +100,8 @@
   "ratings": "notes",
   "comments": "Commentaires",
   "noRatings": "Aucune note encore",
-  "stars": "étoiles"
+  "stars": "étoiles",
+  "recipesCount": "recettes",
+  "tryModifyingSearch": "Essayez de modifier votre recherche",
+  "reset": "Réinitialiser"
 }

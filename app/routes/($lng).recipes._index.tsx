@@ -218,7 +218,7 @@ export default function Recipes() {
                 key={category.id}
                 onClick={() => selectCategory(category.id)}
                 className={clsx(
-                  "flex-shrink-0 lg:flex-shrink px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105",
+                  "cursor-pointer flex-shrink-0 lg:flex-shrink px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105",
                   selectedCategory === category.id
                     ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
                     : "bg-white dark:bg-stone-800 text-gray-700 dark:text-stone-200 border border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 hover:shadow-sm"
@@ -281,7 +281,7 @@ export default function Recipes() {
                 setSearchQuery("");
                 setSearchParams();
               }}
-              className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-medium hover:shadow-lg transition-all text-sm md:text-base hover:scale-105"
+              className="cursor-pointer bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-medium hover:shadow-lg transition-all text-sm md:text-base hover:scale-105"
             >
               Réinitialiser
             </button>
