@@ -425,6 +425,7 @@ export function getRecipeComments(recipeSlug: string): RecipeComment[] {
       author_name: string;
       comment: string;
       created_at: string;
+      user_id: string | null;
     }>;
 
     return rows.map((row) => ({
@@ -432,6 +433,7 @@ export function getRecipeComments(recipeSlug: string): RecipeComment[] {
       authorName: row.author_name,
       comment: row.comment,
       createdAt: row.created_at,
+      userId: row.user_id || undefined,
     }));
   } catch (error) {
     console.error("Error fetching comments:", error);
@@ -443,7 +445,8 @@ export function addComment(
   recipeSlug: string,
   authorName: string,
   comment: string,
-  userIp: string
+  userIp: string,
+  userId?: string
 ): boolean {
   ensureInitialized();
 
@@ -456,11 +459,32 @@ export function addComment(
       recipeSlug,
       authorName,
       comment,
-      userIp
+      userIp,
+      userId || null
     );
     return result.changes > 0;
   } catch (error) {
     console.error("Error adding comment:", error);
+    return false;
+  }
+}
+
+export function updateComment(
+  commentId: number,
+  newComment: string,
+  userId: string
+): boolean {
+  ensureInitialized();
+
+  if (!queries) {
+    throw new Error("Database not initialized");
+  }
+
+  try {
+    const result = queries.updateComment.run(newComment, commentId, userId);
+    return result.changes > 0;
+  } catch (error) {
+    console.error("Error updating comment:", error);
     return false;
   }
 }

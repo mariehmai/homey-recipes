@@ -1,7 +1,17 @@
-import type { LoaderFunction, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { useLoaderData, Link } from "@remix-run/react";
-import { RiEditLine } from "@remixicon/react";
+import type {
+  LoaderFunction,
+  MetaFunction,
+  ActionFunction,
+} from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
+import {
+  useLoaderData,
+  Link,
+  Form,
+  useActionData,
+  useNavigation,
+} from "@remix-run/react";
+import { RiEditLine, RiSendPlaneLine } from "@remixicon/react";
 import clsx from "clsx";
 import { FunctionComponent, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,11 +19,18 @@ import { useTranslation } from "react-i18next";
 import { BackButton } from "~/components/BackButton";
 import { RecipeRating } from "~/components/RecipeRating";
 import { ServingCalculator } from "~/components/ServingCalculator";
+import { UserAvatar } from "~/components/UserAvatar";
 import i18next from "~/i18next.server";
+import { authenticator } from "~/utils/auth.server";
+import { queries } from "~/utils/db.server";
 import { isFavorite, toggleFavorite } from "~/utils/favorites";
 import { buildI18nUrl } from "~/utils/i18n-redirect";
-import { getRecipeBySlug } from "~/utils/recipe-storage.server";
-import type { Recipe } from "~/utils/recipes";
+import {
+  getRecipeBySlug,
+  getRecipeComments,
+  addComment,
+} from "~/utils/recipe-storage.server";
+import type { Recipe, RecipeComment } from "~/utils/recipes";
 import { getTagColor } from "~/utils/tag-utils";
 
 export const meta: MetaFunction = () => {
@@ -23,6 +40,7 @@ export const meta: MetaFunction = () => {
 export const loader: LoaderFunction = async ({ params, request }) => {
   const { slug } = params;
   const locale = await i18next.getLocale(request);
+  const user = await authenticator.isAuthenticated(request);
 
   if (!slug) {
     throw new Response("Not Found", { status: 404 });
@@ -34,7 +52,72 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     throw new Response("Not Found", { status: 404 });
   }
 
-  return json({ recipe, locale });
+  const comments = getRecipeComments(slug);
+
+  return json({ recipe, locale, user, comments });
+};
+
+export const action: ActionFunction = async ({ request, params }) => {
+  const { slug } = params;
+  const user = await authenticator.isAuthenticated(request);
+
+  if (!user) {
+    return json({ error: "Must be logged in to comment" }, { status: 401 });
+  }
+
+  if (!slug) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  const formData = await request.formData();
+  const comment = formData.get("comment") as string;
+
+  if (!comment || !comment.trim()) {
+    return json({ error: "Comment cannot be empty" }, { status: 400 });
+  }
+
+  // Get user's display name: use username if available, otherwise first name only
+  let displayName = user.name;
+
+  // Get user data from database to check for custom username
+  if (queries) {
+    try {
+      const dbUser = queries.getUserById.get(user.id) as
+        | { username?: string }
+        | undefined;
+      if (dbUser?.username) {
+        displayName = dbUser.username;
+      } else {
+        // Use first name only
+        displayName = user.name.split(" ")[0];
+      }
+    } catch (error) {
+      console.error("Error fetching user username:", error);
+      // Fallback to first name only
+      displayName = user.name.split(" ")[0];
+    }
+  } else {
+    // Fallback to first name only if no database
+    displayName = user.name.split(" ")[0];
+  }
+
+  // Get user IP for spam prevention (in a real app, you'd use proper user ID)
+  const userIp = request.headers.get("x-forwarded-for") || "unknown";
+
+  const success = addComment(
+    slug,
+    displayName,
+    comment.trim(),
+    userIp,
+    user.id
+  );
+
+  if (!success) {
+    return json({ error: "Failed to add comment" }, { status: 500 });
+  }
+
+  // Redirect to refresh the page and show the new comment
+  return redirect(`/recipes/${slug}`);
 };
 
 function getUnitLabels(t: (key: string) => string) {
@@ -52,10 +135,15 @@ function getUnitLabels(t: (key: string) => string) {
 
 export default function Recipe() {
   const { t } = useTranslation();
-  const { recipe, locale } = useLoaderData<{
+  const { recipe, locale, user, comments } = useLoaderData<{
     recipe: Recipe;
     locale: string;
+    user: { id: string; name: string; email: string; avatar: string } | null;
+    comments: RecipeComment[];
   }>();
+  const actionData = useActionData<{ error?: string }>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === "submitting";
   const [selectedTab, setSelectedTab] = useState("ingredients");
   const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(
     new Set()
@@ -269,6 +357,110 @@ export default function Recipe() {
           </div>
         );
 
+      case "comments":
+        return (
+          <div className="space-y-6">
+            {/* Comment Form - Only show for logged in users */}
+            {user ? (
+              <div className="bg-white dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  {t("leaveComment") || "Leave a Comment"}
+                </h3>
+
+                {actionData?.error && (
+                  <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
+                    {actionData.error}
+                  </div>
+                )}
+
+                <Form method="post" className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <UserAvatar src={user.avatar} alt={user.name} size="sm" />
+                    <div className="flex-1">
+                      <textarea
+                        name="comment"
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                        placeholder={
+                          t("writeComment") || "Write your comment..."
+                        }
+                        disabled={isSubmitting}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <RiSendPlaneLine size={16} />
+                      <span>
+                        {isSubmitting
+                          ? t("posting") || "Posting..."
+                          : t("postComment") || "Post Comment"}
+                      </span>
+                    </button>
+                  </div>
+                </Form>
+              </div>
+            ) : (
+              <div className="bg-gray-50 dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600 text-center">
+                <p className="text-gray-600 dark:text-stone-400 mb-4">
+                  {t("loginToComment") || "Please log in to leave a comment."}
+                </p>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                >
+                  {t("signIn") || "Sign In"}
+                </Link>
+              </div>
+            )}
+
+            {/* Comments List */}
+            <div className="space-y-4">
+              {comments.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 dark:text-stone-400">
+                    {t("noCommentsYet") ||
+                      "No comments yet. Be the first to comment!"}
+                  </p>
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="bg-white dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600"
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-sm font-medium">
+                          {comment.authorName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h4 className="font-medium text-gray-900 dark:text-white">
+                            {comment.authorName}
+                          </h4>
+                          <span className="text-sm text-gray-500 dark:text-stone-400">
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 dark:text-stone-300 leading-relaxed">
+                          {comment.comment}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -320,7 +512,7 @@ export default function Recipe() {
 
       <main className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
         <div className="mb-6 md:mb-8">
-          <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
+          <div className="flex flex-wrap gap-2 mb-3 md:mb-4 items-center">
             {recipe.tags.map((tag) => (
               <span
                 key={tag}
@@ -331,6 +523,12 @@ export default function Recipe() {
                 #{tag}
               </span>
             ))}
+            {recipe.isPublic === false && (
+              <span className="px-3 py-1 md:px-4 md:py-2 bg-gray-500 text-white text-xs md:text-sm rounded-full font-medium flex items-center space-x-1">
+                <span>🔒</span>
+                <span>{t("private") || "Private"}</span>
+              </span>
+            )}
           </div>
 
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3 md:mb-4 leading-tight">
@@ -397,14 +595,14 @@ export default function Recipe() {
                   {t("noRatings")}
                 </span>
               )}
-              {recipe.commentCount && recipe.commentCount > 0 && (
+              {recipe.commentCount && recipe.commentCount > 0 ? (
                 <div className="flex items-center space-x-1 text-sm text-gray-600 dark:text-stone-400">
                   <span>💬</span>
                   <span>
                     {recipe.commentCount} {t("comments")}
                   </span>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
@@ -451,6 +649,12 @@ export default function Recipe() {
                 isSelected={selectedTab === "instructions"}
                 label={`${t("instructions")} (${recipe.instructions.length})`}
                 onClick={() => setSelectedTab("instructions")}
+                isDesktop={true}
+              />
+              <Tab
+                isSelected={selectedTab === "comments"}
+                label={`${t("comments")} (${comments.length})`}
+                onClick={() => setSelectedTab("comments")}
                 isDesktop={true}
               />
             </div>

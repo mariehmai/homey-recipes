@@ -26,6 +26,7 @@ const SCHEMA = `
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
+    username TEXT,
     avatar TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
@@ -67,6 +68,7 @@ const SCHEMA = `
     author_name TEXT NOT NULL DEFAULT 'Anonymous',
     comment TEXT NOT NULL,
     user_ip TEXT NOT NULL,
+    user_id TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (recipe_slug) REFERENCES recipes(slug) ON DELETE CASCADE
   );
@@ -187,6 +189,58 @@ function runMigrations() {
         db.exec("ALTER TABLE recipes ADD COLUMN is_public BOOLEAN DEFAULT 1");
         console.log("✅ is_public column added");
       }
+    }
+
+    // Check if users table exists and add username column if needed
+    const usersTableExists = db
+      .prepare(
+        `
+      SELECT name FROM sqlite_master 
+      WHERE type='table' AND name='users'
+    `
+      )
+      .get();
+
+    if (usersTableExists) {
+      const userColumns = db
+        .prepare(`PRAGMA table_info(users)`)
+        .all() as Array<{
+        name: string;
+      }>;
+      const hasUsername = userColumns.some((col) => col.name === "username");
+
+      if (!hasUsername) {
+        console.log("📝 Adding username column to existing users table...");
+        db.exec("ALTER TABLE users ADD COLUMN username TEXT");
+        console.log("✅ username column added");
+      }
+    }
+
+    // Check for comments table migrations
+    const commentsTableExists = db
+      .prepare(
+        `
+      SELECT name FROM sqlite_master 
+      WHERE type='table' AND name='recipe_comments'
+    `
+      )
+      .get();
+
+    if (commentsTableExists) {
+      const commentColumns = db
+        .prepare(`PRAGMA table_info(recipe_comments)`)
+        .all() as Array<{
+        name: string;
+      }>;
+      const hasUserId = commentColumns.some((col) => col.name === "user_id");
+
+      if (!hasUserId) {
+        console.log(
+          "📝 Adding user_id column to existing recipe_comments table..."
+        );
+        db.exec("ALTER TABLE recipe_comments ADD COLUMN user_id TEXT");
+        console.log("✅ user_id column added to recipe_comments");
+      }
 
       // Update existing records that might have NULL or empty author
       const updateResult = db
@@ -266,7 +320,11 @@ type QueriesType = {
   // Comment queries
   getRecipeComments: Database.Statement<[string], unknown>;
   insertComment: Database.Statement<
-    [string, string, string, string],
+    [string, string, string, string, string | null],
+    Database.RunResult
+  >;
+  updateComment: Database.Statement<
+    [string, number, string],
     Database.RunResult
   >;
   deleteComment: Database.Statement<[number], Database.RunResult>;
@@ -282,7 +340,11 @@ type QueriesType = {
   // User queries
   getUserById: Database.Statement<[string], unknown>;
   insertOrUpdateUser: Database.Statement<
-    [string, string, string, string],
+    [string, string, string, string | null, string],
+    Database.RunResult
+  >;
+  updateUserProfile: Database.Statement<
+    [string | null, string],
     Database.RunResult
   >;
 };
@@ -369,15 +431,21 @@ function initializeQueries() {
 
     // Comment queries
     getRecipeComments: db.prepare(`
-      SELECT id, author_name, comment, created_at 
+      SELECT id, author_name, comment, created_at, user_id 
       FROM recipe_comments 
       WHERE recipe_slug = ? 
       ORDER BY created_at DESC
     `),
 
     insertComment: db.prepare(`
-      INSERT INTO recipe_comments (recipe_slug, author_name, comment, user_ip) 
-      VALUES (?, ?, ?, ?)
+      INSERT INTO recipe_comments (recipe_slug, author_name, comment, user_ip, user_id) 
+      VALUES (?, ?, ?, ?, ?)
+    `),
+
+    updateComment: db.prepare(`
+      UPDATE recipe_comments 
+      SET comment = ? 
+      WHERE id = ? AND user_id = ?
     `),
 
     deleteComment: db.prepare(`
@@ -425,8 +493,12 @@ function initializeQueries() {
     `),
 
     insertOrUpdateUser: db.prepare(`
-      INSERT OR REPLACE INTO users (id, email, name, avatar) 
-      VALUES (?, ?, ?, ?)
+      INSERT OR REPLACE INTO users (id, email, name, username, avatar) 
+      VALUES (?, ?, ?, ?, ?)
+    `),
+
+    updateUserProfile: db.prepare(`
+      UPDATE users SET username = ? WHERE id = ?
     `),
   };
 

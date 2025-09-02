@@ -732,26 +732,32 @@ export default function NewRecipe() {
               </div>
 
               <div>
-                <span className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
+                <span className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-3">
                   {t("privacy") || "Privacy"}
                 </span>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="isPublic"
-                    checked={isPublic}
-                    onChange={(e) => setIsPublic(e.target.checked)}
-                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <span className="text-sm text-gray-700 dark:text-stone-300">
-                    {t("makeRecipePublic") ||
-                      "Make this recipe public (others can see it)"}
-                  </span>
-                </label>
-                <p className="text-xs text-gray-500 dark:text-stone-400 mt-1">
-                  {t("privateRecipeNote") ||
-                    "Private recipes are only visible to you"}
-                </p>
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-stone-700 rounded-lg border border-gray-200 dark:border-stone-600">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-stone-300">
+                      {t("makeRecipePublic") ||
+                        "Make this recipe public (others can see it)"}
+                    </label>
+                    <p className="text-xs text-gray-500 dark:text-stone-400 mt-1">
+                      {t("privateRecipeNote") ||
+                        "Private recipes are only visible to you"}
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    {""}
+                    <input
+                      type="checkbox"
+                      name="isPublic"
+                      checked={isPublic}
+                      onChange={(e) => setIsPublic(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 dark:peer-focus:ring-orange-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-600"></div>
+                  </label>
+                </div>
               </div>
             </div>
           </div>

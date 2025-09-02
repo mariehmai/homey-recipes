@@ -112,5 +112,18 @@
   "bySigningIn": "Al iniciar sesión, aceptas nuestros términos de servicio",
   "privacy": "Privacidad",
   "makeRecipePublic": "Hacer esta receta pública (otros pueden verla)",
-  "privateRecipeNote": "Las recetas privadas solo son visibles para ti"
+  "privateRecipeNote": "Las recetas privadas solo son visibles para ti",
+  "leaveComment": "Dejar un comentario",
+  "writeComment": "Escribe tu comentario...",
+  "postComment": "Publicar comentario",
+  "posting": "Publicando...",
+  "loginToComment": "Por favor inicia sesión para dejar un comentario.",
+  "noCommentsYet": "Aún no hay comentarios. ¡Sé el primero en comentar!",
+  "private": "Privado",
+  "profile": "Perfil",
+  "username": "Nombre de usuario",
+  "enterUsername": "Ingresa tu nombre de usuario",
+  "usernameNote": "Esto se mostrará cuando comentes recetas en lugar de tu nombre completo.",
+  "saving": "Guardando...",
+  "saveProfile": "Guardar Perfil"
 }

@@ -109,5 +109,21 @@
   "welcomeBack": "Bem-vindo de volta",
   "signInToContinue": "Entre para continuar com suas receitas",
   "continueWithGoogle": "Continuar com Google",
-  "bySigningIn": "Ao entrar, você aceita nossos termos de serviço"
+  "bySigningIn": "Ao entrar, você aceita nossos termos de serviço",
+  "privacy": "Privacidade",
+  "makeRecipePublic": "Tornar esta receita pública (outros podem vê-la)",
+  "privateRecipeNote": "Receitas privadas são visíveis apenas para você",
+  "leaveComment": "Deixar um comentário",
+  "writeComment": "Escreva seu comentário...",
+  "postComment": "Publicar comentário",
+  "posting": "Publicando...",
+  "loginToComment": "Por favor, faça login para deixar um comentário.",
+  "noCommentsYet": "Ainda não há comentários. Seja o primeiro a comentar!",
+  "private": "Privado",
+  "profile": "Perfil",
+  "username": "Nome de usuário",
+  "enterUsername": "Digite seu nome de usuário",
+  "usernameNote": "Isso será mostrado quando você comentar receitas em vez do seu nome completo.",
+  "saving": "Salvando...",
+  "saveProfile": "Salvar Perfil"
 }

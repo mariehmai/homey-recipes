@@ -112,5 +112,18 @@
   "bySigningIn": "בהתחברות, אתה מסכים לתנאי השירות שלנו",
   "privacy": "פרטיות",
   "makeRecipePublic": "הפוך מתכון זה לציבורי (אחרים יכולים לראות אותו)",
-  "privateRecipeNote": "מתכונים פרטיים גלויים רק לך"
+  "privateRecipeNote": "מתכונים פרטיים גלויים רק לך",
+  "leaveComment": "השאר תגובה",
+  "writeComment": "כתוב את התגובה שלך...",
+  "postComment": "פרסם תגובה",
+  "posting": "מפרסם...",
+  "loginToComment": "אנא התחבר כדי להשאיר תגובה.",
+  "noCommentsYet": "אין תגובות עדיין. היה הראשון להגיב!",
+  "private": "פרטי",
+  "profile": "פרופיל",
+  "username": "שם משתמש",
+  "enterUsername": "הזן את שם המשתמש שלך",
+  "usernameNote": "זה יוצג כאשר אתה מגיב על מתכונים במקום השם המלא שלך.",
+  "saving": "שומר...",
+  "saveProfile": "שמור פרופיל"
 }

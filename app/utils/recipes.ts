@@ -41,6 +41,7 @@ export type RecipeComment = {
   authorName: string;
   comment: string;
   createdAt: string;
+  userId?: string;
 };
 
 export type RecipeRating = {

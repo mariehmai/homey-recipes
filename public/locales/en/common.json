@@ -123,5 +123,18 @@
   "bySigningIn": "By signing in, you agree to our terms of service",
   "privacy": "Privacy",
   "makeRecipePublic": "Make this recipe public (others can see it)",
-  "privateRecipeNote": "Private recipes are only visible to you"
+  "privateRecipeNote": "Private recipes are only visible to you",
+  "leaveComment": "Leave a Comment",
+  "writeComment": "Write your comment...",
+  "postComment": "Post Comment",
+  "posting": "Posting...",
+  "loginToComment": "Please log in to leave a comment.",
+  "noCommentsYet": "No comments yet. Be the first to comment!",
+  "private": "Private",
+  "profile": "Profile",
+  "username": "Username",
+  "enterUsername": "Enter your username",
+  "usernameNote": "This will be shown when you comment on recipes instead of your full name.",
+  "saving": "Saving...",
+  "saveProfile": "Save Profile"
 }

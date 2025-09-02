@@ -398,7 +398,14 @@ const RecipeCard: FunctionComponent<{
   t: TFunction<"translation", undefined>;
   isFavorite: boolean;
   onToggleFavorite: (slug: string, e: React.MouseEvent) => void;
-}> = ({ recipe, onRecipeClick, formatTime, isFavorite, onToggleFavorite }) => {
+}> = ({
+  recipe,
+  onRecipeClick,
+  formatTime,
+  t,
+  isFavorite,
+  onToggleFavorite,
+}) => {
   return (
     <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-left group relative">
       <button
@@ -457,7 +464,7 @@ const RecipeCard: FunctionComponent<{
           />
         </div>
 
-        <div className="flex flex-wrap gap-1 md:gap-2">
+        <div className="flex flex-wrap gap-1 md:gap-2 items-center">
           {recipe.tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
@@ -468,6 +475,12 @@ const RecipeCard: FunctionComponent<{
               #{tag}
             </span>
           ))}
+          {recipe.isPublic === false && (
+            <span className="px-2 py-1 md:px-3 md:py-1.5 bg-gray-500 text-white text-xs md:text-sm rounded-full font-medium flex items-center space-x-1">
+              <span>🔒</span>
+              <span>{t("private") || "Private"}</span>
+            </span>
+          )}
         </div>
       </div>
     </div>
@@ -481,7 +494,14 @@ const RecipeListItem: FunctionComponent<{
   t: TFunction<"translation", undefined>;
   isFavorite: boolean;
   onToggleFavorite: (slug: string, e: React.MouseEvent) => void;
-}> = ({ recipe, onRecipeClick, formatTime, isFavorite, onToggleFavorite }) => {
+}> = ({
+  recipe,
+  onRecipeClick,
+  formatTime,
+  t,
+  isFavorite,
+  onToggleFavorite,
+}) => {
   return (
     <div className="relative bg-white dark:bg-stone-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-stone-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
       <button
@@ -537,7 +557,7 @@ const RecipeListItem: FunctionComponent<{
               </div>
             </div>
 
-            <div className="flex gap-1 md:gap-2">
+            <div className="flex gap-1 md:gap-2 items-center">
               {recipe.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag}
@@ -548,6 +568,12 @@ const RecipeListItem: FunctionComponent<{
                   #{tag}
                 </span>
               ))}
+              {recipe.isPublic === false && (
+                <span className="px-2 py-1 md:px-3 md:py-1.5 bg-gray-500 text-white text-xs md:text-sm rounded-full font-medium flex items-center space-x-1">
+                  <span>🔒</span>
+                  <span>{t("private") || "Private"}</span>
+                </span>
+              )}
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  username?: string;
   avatar: string;
 }
 
@@ -39,6 +40,7 @@ const googleStrategy = new GoogleStrategy(
           user.id,
           user.email,
           user.name,
+          null, // username - will be set in profile page
           user.avatar
         );
         console.log(`✅ User ${user.email} saved to database`);

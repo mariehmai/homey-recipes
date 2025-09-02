@@ -234,6 +234,22 @@ export default function App() {
           </div>
         )}
 
+        <div className="py-1">
+          <button
+            onClick={() => {
+              const currentLang = locale;
+              const profileUrl =
+                currentLang === "fr" ? "/profile" : `/${currentLang}/profile`;
+              navigate(profileUrl);
+              setShowUserMenu(false);
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors flex items-center space-x-2"
+          >
+            <RiUserLine className="w-4 h-4" />
+            <span>{t("profile") || "Profile"}</span>
+          </button>
+        </div>
+
         <Form method="post" action="/logout">
           <button
             type="submit"
