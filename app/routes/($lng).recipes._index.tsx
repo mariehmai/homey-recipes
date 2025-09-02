@@ -117,7 +117,7 @@ export default function Recipes() {
         additionalCategories,
         filteredAdditionalCategories,
       };
-    }, [t, recipes, favoriteRecipes, availableTags, tagSearchQuery]);
+    }, [t, recipes, favoriteRecipes, availableTags, tagSearchQuery, user]);
 
   const filteredRecipes = useMemo(() => {
     const categoryFilter = searchParams.get("category");
