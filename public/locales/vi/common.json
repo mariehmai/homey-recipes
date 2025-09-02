@@ -112,5 +112,11 @@
   "ratingUpdated": "Đánh giá đã được cập nhật!",
   "savingRating": "Đang lưu",
   "showMore": "Hiển thị thêm",
-  "showLess": "Hiển thị ít hơn"
+  "showLess": "Hiển thị ít hơn",
+  "signIn": "Đăng nhập",
+  "logout": "Đăng xuất",
+  "welcomeBack": "Chào mừng trở lại",
+  "signInToContinue": "Đăng nhập để tiếp tục với công thức của bạn",
+  "continueWithGoogle": "Tiếp tục với Google",
+  "bySigningIn": "Bằng cách đăng nhập, bạn đồng ý với điều khoản dịch vụ của chúng tôi"
 }

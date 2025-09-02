@@ -28,11 +28,13 @@ interface DatabaseRow {
   prep_time: number | null;
   cook_time: number | null;
   servings: number | null;
+  user_id: string | null;
   author: string;
   tags: string;
   ingredients: string;
   instructions: string;
   is_default?: boolean;
+  is_public?: boolean;
   created_at: string;
   updated_at: string;
   average_rating: number;
@@ -82,6 +84,7 @@ function dbRowToRecipe(row: DatabaseRow): Recipe {
       : undefined,
     servings: row.servings || undefined,
     author: row.author,
+    userId: row.user_id || undefined,
     tags: recipeTags.map((tag) => tag.name),
     ingredients: JSON.parse(row.ingredients),
     instructions: JSON.parse(row.instructions),
@@ -91,10 +94,11 @@ function dbRowToRecipe(row: DatabaseRow): Recipe {
     ratingCount: row.rating_count,
     commentCount: row.comment_count,
     isDefault: row.is_default || false,
+    isPublic: row.is_public !== undefined ? Boolean(row.is_public) : true,
   };
 }
 
-export function getAllRecipes(): Recipe[] {
+export function getAllRecipes(userId?: string): Recipe[] {
   ensureInitialized();
 
   if (!queries) {
@@ -103,7 +107,41 @@ export function getAllRecipes(): Recipe[] {
   }
 
   try {
-    const rows = queries.getAllRecipes.all() as DatabaseRow[];
+    // If no user is provided, only show public recipes
+    // If user is provided, show public recipes + user's private recipes
+    let query;
+    let params: string[] = [];
+
+    if (userId) {
+      query = db.prepare(`
+        SELECT r.*,
+          COALESCE(AVG(rt.rating), 0) as average_rating,
+          COUNT(rt.rating) as rating_count,
+          COUNT(c.id) as comment_count
+        FROM recipes r
+        LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
+        LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
+        WHERE r.is_public = 1 OR r.user_id = ?
+        GROUP BY r.id
+        ORDER BY r.is_default DESC, r.created_at DESC
+      `);
+      params = [userId];
+    } else {
+      query = db.prepare(`
+        SELECT r.*,
+          COALESCE(AVG(rt.rating), 0) as average_rating,
+          COUNT(rt.rating) as rating_count,
+          COUNT(c.id) as comment_count
+        FROM recipes r
+        LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
+        LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
+        WHERE r.is_public = 1
+        GROUP BY r.id
+        ORDER BY r.is_default DESC, r.created_at DESC
+      `);
+    }
+
+    const rows = query.all(...params) as DatabaseRow[];
     return rows.map(dbRowToRecipe);
   } catch (error) {
     console.error("Error fetching recipes:", error);
@@ -120,7 +158,19 @@ export function getRecipeBySlug(slug: string): Recipe | undefined {
   }
 
   try {
-    const row = queries.getRecipeBySlug.get(slug) as DatabaseRow | undefined;
+    const query = db.prepare(`
+      SELECT r.*,
+        COALESCE(AVG(rt.rating), 0) as average_rating,
+        COUNT(rt.rating) as rating_count,
+        COUNT(c.id) as comment_count
+      FROM recipes r
+      LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
+      LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
+      WHERE r.slug = ?
+      GROUP BY r.id
+    `);
+
+    const row = query.get(slug) as DatabaseRow | undefined;
     return row ? dbRowToRecipe(row) : undefined;
   } catch (error) {
     console.error(`Error fetching recipe ${slug}:`, error);
@@ -155,11 +205,13 @@ export function addRecipe(recipe: Recipe): Recipe {
       finalRecipe.time?.min || null,
       finalRecipe.time?.max || null,
       finalRecipe.servings || null,
+      finalRecipe.userId || null,
       "[]", // Empty JSON array for backward compatibility
       JSON.stringify(finalRecipe.ingredients),
       JSON.stringify(finalRecipe.instructions),
       finalRecipe.author || "Anonymous",
-      0 // is_default = false (user recipe)
+      0, // is_default = false (user recipe)
+      finalRecipe.isPublic !== undefined ? (finalRecipe.isPublic ? 1 : 0) : 1 // Default to public
     );
 
     // Add tags to the recipe

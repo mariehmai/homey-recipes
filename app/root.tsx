@@ -10,12 +10,15 @@ import {
   useLoaderData,
   useMatch,
   useNavigate,
+  Form,
 } from "@remix-run/react";
 import {
   RiSliceLine,
   RiMoonLine,
   RiSunLine,
   RiGlobalLine,
+  RiUserLine,
+  RiLogoutBoxLine,
 } from "@remixicon/react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -24,15 +27,18 @@ import { useChangeLanguage } from "remix-i18next/react";
 
 import { getLocaleFromPath } from "~/i18next.server";
 import styles from "~/index.css";
+import { authenticator } from "~/utils/auth.server";
 
 import { Footer } from "./components/Footer";
 import { Link } from "./components/Link";
+import { UserAvatar } from "./components/UserAvatar";
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const locale = getLocaleFromPath(request);
-  return json({ locale });
+  const user = await authenticator.isAuthenticated(request);
+  return json({ locale, user });
 }
 
 export const handle = {
@@ -46,13 +52,16 @@ export const handle = {
 export default function App() {
   const navigate = useNavigate();
   const match = useMatch("/");
-  const { locale } = useLoaderData<typeof loader>();
+  const { locale, user } = useLoaderData<typeof loader>();
   const { i18n, t } = useTranslation();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const languageMenuRef = useRef<HTMLDivElement>(null);
   const languageButtonRef = useRef<HTMLButtonElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const userButtonRef = useRef<HTMLButtonElement>(null);
 
   // This hook will change the i18n instance language to the current locale
   // detected by the loader, this way, when we do something to change the
@@ -88,6 +97,15 @@ export default function App() {
         !languageButtonRef.current.contains(event.target as Node)
       ) {
         setShowLanguageMenu(false);
+      }
+
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node) &&
+        userButtonRef.current &&
+        !userButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowUserMenu(false);
       }
     };
 
@@ -177,6 +195,59 @@ export default function App() {
     );
   };
 
+  const UserMenu = () => {
+    if (!showUserMenu || !isClient) return null;
+
+    const getUserButtonPosition = () => {
+      if (!userButtonRef.current) return { top: 0, right: 0 };
+      const rect = userButtonRef.current.getBoundingClientRect();
+      return {
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      };
+    };
+
+    const position = getUserButtonPosition();
+
+    return createPortal(
+      <div
+        ref={userMenuRef}
+        className="fixed bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-lg min-w-[200px] z-[9999]"
+        style={{
+          top: `${position.top}px`,
+          right: `${position.right}px`,
+        }}
+      >
+        {user && (
+          <div className="px-4 py-3 border-b border-stone-200 dark:border-stone-700">
+            <div className="flex items-center space-x-3">
+              <UserAvatar src={user.avatar} alt={user.name} size="md" />
+              <div>
+                <p className="text-sm font-medium text-stone-900 dark:text-white">
+                  {user.name}
+                </p>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  {user.email}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <Form method="post" action="/logout">
+          <button
+            type="submit"
+            className="w-full text-left px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors rounded-b-lg flex items-center space-x-2"
+          >
+            <RiLogoutBoxLine className="w-4 h-4" />
+            <span>{t("logout") || "Sign Out"}</span>
+          </button>
+        </Form>
+      </div>,
+      document.body
+    );
+  };
+
   return (
     <html lang={locale} dir={i18n.dir()} className={isDarkMode ? "dark" : ""}>
       <head>
@@ -221,6 +292,34 @@ export default function App() {
               </div>
 
               <div className="flex items-center space-x-2">
+                {user ? (
+                  <button
+                    ref={userButtonRef}
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-2 p-2 md:p-3 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all hover:scale-110"
+                    aria-label="User menu"
+                  >
+                    <UserAvatar src={user.avatar} alt={user.name} size="sm" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      const currentLang = locale;
+                      const loginUrl =
+                        currentLang === "fr"
+                          ? "/login"
+                          : `/${currentLang}/login`;
+                      navigate(loginUrl);
+                    }}
+                    className="flex items-center space-x-2 px-3 py-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-medium transition-all hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    <RiUserLine className="w-4 h-4" />
+                    <span className="hidden sm:inline">
+                      {t("signIn") || "Sign In"}
+                    </span>
+                  </button>
+                )}
+
                 <button
                   ref={languageButtonRef}
                   onClick={() => setShowLanguageMenu(!showLanguageMenu)}
@@ -263,6 +362,7 @@ export default function App() {
         </main>
         <Footer />
         <LanguageMenu />
+        <UserMenu />
       </body>
     </html>
   );

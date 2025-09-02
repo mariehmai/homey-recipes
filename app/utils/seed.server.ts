@@ -63,6 +63,7 @@ const defaultRecipes: Recipe[] = [
       },
     ],
     tags: ["savory", "quick"],
+    isPublic: true,
   },
   {
     slug: "poulet-curry-jaune",
@@ -111,6 +112,7 @@ const defaultRecipes: Recipe[] = [
       },
     ],
     tags: ["savory", "spicy"],
+    isPublic: true,
   },
   {
     slug: "pancake-banane",
@@ -140,6 +142,7 @@ const defaultRecipes: Recipe[] = [
       { description: "Servir chaud avec sirop d'érable." },
     ],
     tags: ["sweet", "dessert", "quick"],
+    isPublic: true,
   },
   {
     slug: "crepes-sucrees",
@@ -195,6 +198,7 @@ const defaultRecipes: Recipe[] = [
       },
     ],
     tags: ["sweet", "dessert"],
+    isPublic: true,
   },
 ];
 
@@ -267,11 +271,13 @@ export function seedDefaultRecipes(): boolean {
           recipe.time?.min || null,
           recipe.time?.max || null,
           recipe.servings || null,
+          null, // user_id = null (default recipes)
           JSON.stringify(recipe.tags),
           JSON.stringify(recipe.ingredients),
           JSON.stringify(recipe.instructions),
           recipe.author || "Chef",
-          1 // is_default = true
+          1, // is_default = true
+          recipe.isPublic !== undefined ? (recipe.isPublic ? 1 : 0) : 1 // Default to public
         );
 
         // Add tags to the recipe

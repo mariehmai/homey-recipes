@@ -102,5 +102,11 @@
   "ratingUpdated": "Avaliação atualizada!",
   "savingRating": "Salvando",
   "showMore": "Mostrar mais",
-  "showLess": "Mostrar menos"
+  "showLess": "Mostrar menos",
+  "signIn": "Entrar",
+  "logout": "Sair",
+  "welcomeBack": "Bem-vindo de volta",
+  "signInToContinue": "Entre para continuar com suas receitas",
+  "continueWithGoogle": "Continuar com Google",
+  "bySigningIn": "Ao entrar, você aceita nossos termos de serviço"
 }

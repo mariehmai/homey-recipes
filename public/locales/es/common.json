@@ -102,5 +102,11 @@
   "ratingUpdated": "¡Calificación actualizada!",
   "savingRating": "Guardando",
   "showMore": "Mostrar más",
-  "showLess": "Mostrar menos"
+  "showLess": "Mostrar menos",
+  "signIn": "Iniciar sesión",
+  "logout": "Cerrar sesión",
+  "welcomeBack": "Bienvenido de vuelta",
+  "signInToContinue": "Inicia sesión para continuar con tus recetas",
+  "continueWithGoogle": "Continuar con Google",
+  "bySigningIn": "Al iniciar sesión, aceptas nuestros términos de servicio"
 }

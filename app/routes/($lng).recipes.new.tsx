@@ -33,6 +33,7 @@ import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
 import i18next from "~/i18next.server";
+import { authenticator } from "~/utils/auth.server";
 import { buildI18nUrl } from "~/utils/i18n-redirect";
 import { addRecipe } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
@@ -77,6 +78,7 @@ function generateSlug(title: string): string {
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const locale = await i18next.getLocale(request);
+  const user = await authenticator.isAuthenticated(request);
 
   const title = formData.get("title") as string;
   const summary = formData.get("summary") as string;
@@ -86,6 +88,7 @@ export const action: ActionFunction = async ({ request }) => {
   const cookTime = formData.get("cookTime") as string;
   const servings = formData.get("servings") as string;
   const tags = formData.getAll("tags") as string[];
+  const isPublic = formData.get("isPublic") === "on";
 
   // Parse ingredients
   const ingredients = [];
@@ -139,7 +142,8 @@ export const action: ActionFunction = async ({ request }) => {
     title: title.trim(),
     summary: summary.trim(),
     emoji: emoji?.trim() || undefined,
-    author: author?.trim() || "Anonymous",
+    author: user?.name || author?.trim() || "Anonymous",
+    userId: user?.id,
     time: {
       min: parseInt(prepTime),
       max: cookTime ? parseInt(cookTime) : undefined,
@@ -148,6 +152,7 @@ export const action: ActionFunction = async ({ request }) => {
     ingredients,
     instructions,
     tags: tags as Tag[],
+    isPublic,
   };
 
   // Save to server storage
@@ -362,6 +367,7 @@ export default function NewRecipe() {
   const [cookTime, setCookTime] = useState("");
   const [servings, setServings] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isPublic, setIsPublic] = useState(true);
 
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { id: "1", name: "", quantity: "", unit: "g" },
@@ -707,6 +713,29 @@ export default function NewRecipe() {
                     Add
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <span className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
+                  {t("privacy") || "Privacy"}
+                </span>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isPublic"
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-stone-300">
+                    {t("makeRecipePublic") ||
+                      "Make this recipe public (others can see it)"}
+                  </span>
+                </label>
+                <p className="text-xs text-gray-500 dark:text-stone-400 mt-1">
+                  {t("privateRecipeNote") ||
+                    "Private recipes are only visible to you"}
+                </p>
               </div>
             </div>
           </div>

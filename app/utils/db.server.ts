@@ -22,6 +22,14 @@ db.pragma("foreign_keys = 1");
 
 // Database schema
 const SCHEMA = `
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    avatar TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS recipes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     slug TEXT UNIQUE NOT NULL,
@@ -32,12 +40,15 @@ const SCHEMA = `
     cook_time INTEGER,
     servings INTEGER,
     author TEXT DEFAULT 'Anonymous',
+    user_id TEXT,
     tags TEXT, -- JSON array
     ingredients TEXT NOT NULL, -- JSON array
     instructions TEXT NOT NULL, -- JSON array
     is_default BOOLEAN DEFAULT 0,
+    is_public BOOLEAN DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
   );
 
   CREATE TABLE IF NOT EXISTS recipe_ratings (
@@ -76,10 +87,13 @@ const SCHEMA = `
     FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
   );
 
+  CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+  
   CREATE INDEX IF NOT EXISTS idx_recipes_slug ON recipes(slug);
   CREATE INDEX IF NOT EXISTS idx_recipes_tags ON recipes(tags);
   CREATE INDEX IF NOT EXISTS idx_recipes_is_default ON recipes(is_default);
   CREATE INDEX IF NOT EXISTS idx_recipes_author ON recipes(author);
+  CREATE INDEX IF NOT EXISTS idx_recipes_user_id ON recipes(user_id);
   CREATE INDEX IF NOT EXISTS idx_recipes_created_at ON recipes(created_at);
   
   CREATE INDEX IF NOT EXISTS idx_recipe_ratings_slug ON recipe_ratings(recipe_slug);
@@ -141,12 +155,13 @@ function runMigrations() {
     if (tableExists) {
       console.log("📝 Recipes table exists, checking for migrations...");
 
-      // Check if author column exists
+      // Check if columns exist
       const columns = db.prepare(`PRAGMA table_info(recipes)`).all() as Array<{
         name: string;
       }>;
       const hasAuthor = columns.some((col) => col.name === "author");
       const hasEmoji = columns.some((col) => col.name === "emoji");
+      const hasUserId = columns.some((col) => col.name === "user_id");
 
       if (!hasAuthor) {
         console.log("📝 Adding author column to existing recipes table...");
@@ -158,6 +173,19 @@ function runMigrations() {
         console.log("📝 Adding emoji column to existing recipes table...");
         db.exec("ALTER TABLE recipes ADD COLUMN emoji TEXT");
         console.log("✅ Emoji column added");
+      }
+
+      if (!hasUserId) {
+        console.log("📝 Adding user_id column to existing recipes table...");
+        db.exec("ALTER TABLE recipes ADD COLUMN user_id TEXT");
+        console.log("✅ user_id column added");
+      }
+
+      const hasIsPublic = columns.some((col) => col.name === "is_public");
+      if (!hasIsPublic) {
+        console.log("📝 Adding is_public column to existing recipes table...");
+        db.exec("ALTER TABLE recipes ADD COLUMN is_public BOOLEAN DEFAULT 1");
+        console.log("✅ is_public column added");
       }
 
       // Update existing records that might have NULL or empty author
@@ -193,10 +221,12 @@ type QueriesType = {
       number | null,
       number | null,
       number | null,
+      string | null,
       string,
       string,
       string,
       string,
+      number,
       number
     ],
     Database.RunResult
@@ -248,6 +278,13 @@ type QueriesType = {
   addTagToRecipe: Database.Statement<[string, number], Database.RunResult>;
   removeTagFromRecipe: Database.Statement<[string, number], Database.RunResult>;
   clearRecipeTags: Database.Statement<[string], Database.RunResult>;
+
+  // User queries
+  getUserById: Database.Statement<[string], unknown>;
+  insertOrUpdateUser: Database.Statement<
+    [string, string, string, string],
+    Database.RunResult
+  >;
 };
 
 export let queries: QueriesType | null = null;
@@ -282,9 +319,9 @@ function initializeQueries() {
 
     insertRecipe: db.prepare(`
       INSERT INTO recipes (
-        slug, title, summary, emoji, prep_time, cook_time, servings, 
-        tags, ingredients, instructions, author, is_default
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        slug, title, summary, emoji, prep_time, cook_time, servings, user_id,
+        tags, ingredients, instructions, author, is_default, is_public
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `),
 
     updateRecipe: db.prepare(`
@@ -380,6 +417,16 @@ function initializeQueries() {
     clearRecipeTags: db.prepare(`
       DELETE FROM recipe_tags 
       WHERE recipe_slug = ?
+    `),
+
+    // User queries
+    getUserById: db.prepare(`
+      SELECT * FROM users WHERE id = ?
+    `),
+
+    insertOrUpdateUser: db.prepare(`
+      INSERT OR REPLACE INTO users (id, email, name, avatar) 
+      VALUES (?, ?, ?, ?)
     `),
   };
 

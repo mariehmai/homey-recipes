@@ -113,5 +113,14 @@
   "savingRating": "Saving",
   "star": "star",
   "showMore": "Show More",
-  "showLess": "Show Less"
+  "showLess": "Show Less",
+  "signIn": "Sign In",
+  "logout": "Sign Out",
+  "welcomeBack": "Welcome Back",
+  "signInToContinue": "Sign in to continue to your recipes",
+  "continueWithGoogle": "Continue with Google",
+  "bySigningIn": "By signing in, you agree to our terms of service",
+  "privacy": "Privacy",
+  "makeRecipePublic": "Make this recipe public (others can see it)",
+  "privateRecipeNote": "Private recipes are only visible to you"
 }

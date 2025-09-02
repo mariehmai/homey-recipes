@@ -23,6 +23,7 @@ export type Recipe = {
   time?: Time;
   servings?: number;
   author?: string;
+  userId?: string;
   instructions: Instruction[];
   ingredients: Ingredient[];
   tags: Tag[];
@@ -32,6 +33,7 @@ export type Recipe = {
   ratingCount?: number;
   commentCount?: number;
   isDefault?: boolean;
+  isPublic?: boolean;
 };
 
 export type RecipeComment = {
