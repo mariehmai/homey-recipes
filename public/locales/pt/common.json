@@ -90,5 +90,8 @@
   "ingredientNamePlaceholder": "Nome do ingrediente...",
   "stepDescriptionPlaceholder": "Descreva este passo...",
   "author": "Autor",
-  "authorPlaceholder": "Seu nome..."
+  "authorPlaceholder": "Seu nome...",
+  "recipesCount": "receitas",
+  "tryModifyingSearch": "Tente modificar sua busca",
+  "reset": "Redefinir"
 }

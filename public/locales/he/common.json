@@ -90,5 +90,8 @@
   "ingredientNamePlaceholder": "שם הרכיב...",
   "stepDescriptionPlaceholder": "תאר את השלב הזה...",
   "author": "כותב",
-  "authorPlaceholder": "השם שלך..."
+  "authorPlaceholder": "השם שלך...",
+  "recipesCount": "מתכונים",
+  "tryModifyingSearch": "נסה לשנות את החיפוש",
+  "reset": "איפוס"
 }

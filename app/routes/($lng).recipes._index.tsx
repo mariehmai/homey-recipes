@@ -193,7 +193,9 @@ export default function Recipes() {
             </h2>
             <div className="flex items-center space-x-1 text-sm md:text-base text-gray-500 dark:text-stone-300">
               <span>🔍</span>
-              <span>{filteredRecipes.length} recettes</span>
+              <span>
+                {filteredRecipes.length} {t("recipesCount")}
+              </span>
             </div>
           </div>
 
@@ -207,7 +209,7 @@ export default function Recipes() {
                   : "bg-white dark:bg-stone-800 text-gray-700 dark:text-stone-200 border border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 hover:shadow-sm"
               )}
             >
-              Toutes
+              {t("all")}
               <span className="ml-1 md:ml-2 px-1.5 py-0.5 text-xs md:text-sm rounded-full bg-black/10">
                 {recipes.length}
               </span>
@@ -271,10 +273,10 @@ export default function Recipes() {
               <span className="text-2xl md:text-3xl">🔍</span>
             </div>
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              Aucune recette trouvée
+              {t("noRecipesFound")}
             </h3>
             <p className="text-gray-600 dark:text-stone-300 mb-4 md:mb-6 text-sm md:text-base">
-              Essayez de modifier votre recherche
+              {t("tryModifyingSearch")}
             </p>
             <button
               onClick={() => {
@@ -283,7 +285,7 @@ export default function Recipes() {
               }}
               className="cursor-pointer bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-medium hover:shadow-lg transition-all text-sm md:text-base hover:scale-105"
             >
-              Réinitialiser
+              {t("reset")}
             </button>
           </div>
         )}
