@@ -103,5 +103,12 @@
   "stars": "stars",
   "recipesCount": "recipes",
   "tryModifyingSearch": "Try modifying your search",
-  "reset": "Reset"
+  "reset": "Reset",
+  "rateThisRecipe": "Rate this recipe",
+  "updateYourRating": "Update your rating",
+  "yourRating": "Your rating",
+  "thanksForRating": "Thanks for rating!",
+  "ratingUpdated": "Rating updated!",
+  "savingRating": "Saving",
+  "star": "star"
 }

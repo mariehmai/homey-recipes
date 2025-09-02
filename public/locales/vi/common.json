@@ -103,5 +103,11 @@
   "stars": "sao",
   "recipesCount": "công thức",
   "tryModifyingSearch": "Thử sửa đổi tìm kiếm của bạn",
-  "reset": "Đặt lại"
+  "reset": "Đặt lại",
+  "rateThisRecipe": "Đánh giá công thức này",
+  "updateYourRating": "Cập nhật đánh giá của bạn",
+  "yourRating": "Đánh giá của bạn",
+  "thanksForRating": "Cảm ơn bạn đã đánh giá!",
+  "ratingUpdated": "Đánh giá đã được cập nhật!",
+  "savingRating": "Đang lưu"
 }

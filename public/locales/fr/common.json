@@ -103,5 +103,12 @@
   "stars": "étoiles",
   "recipesCount": "recettes",
   "tryModifyingSearch": "Essayez de modifier votre recherche",
-  "reset": "Réinitialiser"
+  "reset": "Réinitialiser",
+  "rateThisRecipe": "Notez cette recette",
+  "updateYourRating": "Modifiez votre note",
+  "yourRating": "Votre note",
+  "thanksForRating": "Merci pour votre note !",
+  "ratingUpdated": "Note mise à jour !",
+  "savingRating": "Enregistrement",
+  "star": "étoile"
 }

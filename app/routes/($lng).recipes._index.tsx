@@ -6,6 +6,7 @@ import { TFunction } from "i18next";
 import { FunctionComponent, useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
+import { RatingDisplay } from "~/components/StarRating";
 import { getFavorites, toggleFavorite } from "~/utils/favorites";
 import { getAllRecipes } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
@@ -352,10 +353,20 @@ const RecipeCard: FunctionComponent<{
           {recipe.title}
         </h3>
         {recipe.summary && (
-          <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-4 leading-relaxed">
+          <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-3 leading-relaxed">
             {recipe.summary}
           </p>
         )}
+
+        <div className="mb-3">
+          <RatingDisplay
+            averageRating={recipe.averageRating || 0}
+            ratingCount={recipe.ratingCount || 0}
+            size="sm"
+            showCount={true}
+            className="justify-start"
+          />
+        </div>
 
         <div className="flex flex-wrap gap-1 md:gap-2">
           {recipe.tags.slice(0, 3).map((tag) => (
@@ -419,10 +430,20 @@ const RecipeListItem: FunctionComponent<{
             {recipe.title}
           </h3>
           {recipe.summary && (
-            <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-2 md:mb-3 leading-relaxed">
+            <p className="text-gray-600 dark:text-stone-300 text-sm md:text-base line-clamp-2 mb-2 leading-relaxed">
               {recipe.summary}
             </p>
           )}
+
+          <div className="mb-2 md:mb-3">
+            <RatingDisplay
+              averageRating={recipe.averageRating || 0}
+              ratingCount={recipe.ratingCount || 0}
+              size="sm"
+              showCount={true}
+              className="justify-start"
+            />
+          </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 text-xs md:text-sm text-gray-500 dark:text-stone-400">

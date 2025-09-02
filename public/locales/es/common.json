@@ -93,5 +93,11 @@
   "authorPlaceholder": "Tu nombre...",
   "recipesCount": "recetas",
   "tryModifyingSearch": "Intenta modificar tu búsqueda",
-  "reset": "Restablecer"
+  "reset": "Restablecer",
+  "rateThisRecipe": "Califica esta receta",
+  "updateYourRating": "Actualiza tu calificación",
+  "yourRating": "Tu calificación",
+  "thanksForRating": "¡Gracias por calificar!",
+  "ratingUpdated": "¡Calificación actualizada!",
+  "savingRating": "Guardando"
 }

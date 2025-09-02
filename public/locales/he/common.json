@@ -93,5 +93,11 @@
   "authorPlaceholder": "השם שלך...",
   "recipesCount": "מתכונים",
   "tryModifyingSearch": "נסה לשנות את החיפוש",
-  "reset": "איפוס"
+  "reset": "איפוס",
+  "rateThisRecipe": "דרג את המתכון הזה",
+  "updateYourRating": "עדכן את הדירוג שלך",
+  "yourRating": "הדירוג שלך",
+  "thanksForRating": "תודה על הדירוג!",
+  "ratingUpdated": "הדירוג עודכן!",
+  "savingRating": "שומר"
 }

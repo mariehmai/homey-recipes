@@ -7,6 +7,7 @@ import { FunctionComponent, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
+import { RecipeRating } from "~/components/RecipeRating";
 import { ServingCalculator } from "~/components/ServingCalculator";
 import i18next from "~/i18next.server";
 import { isFavorite, toggleFavorite } from "~/utils/favorites";
@@ -128,6 +129,21 @@ export default function Recipe() {
   function formatQuantity(ingredient: NewType[0]) {
     const unitLabels = getUnitLabels(t);
     const unit = unitLabels[ingredient.unit] || ingredient.unit;
+
+    // For "n" unit (numeric/no unit), only show the quantity if it's meaningful
+    if (ingredient.unit === "n") {
+      // If quantity is 1 or empty, don't show it
+      if (
+        ingredient.quantity === 1 ||
+        ingredient.quantity === "1" ||
+        !ingredient.quantity
+      ) {
+        return "";
+      }
+      // Otherwise, show just the quantity
+      return String(ingredient.quantity);
+    }
+
     return `${ingredient.quantity} ${unit}`.trim();
   }
 
@@ -451,6 +467,13 @@ export default function Recipe() {
             <ServingCalculator
               recipe={recipe}
               onServingsChange={handleServingsChange}
+            />
+
+            <RecipeRating
+              recipeSlug={recipe.slug}
+              initialAverageRating={recipe.averageRating}
+              initialRatingCount={recipe.ratingCount}
+              className="bg-white dark:bg-stone-800 rounded-lg p-4 border border-gray-200 dark:border-stone-600"
             />
           </div>
 

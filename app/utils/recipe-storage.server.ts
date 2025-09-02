@@ -436,3 +436,33 @@ export function getTrendyRecipes(
     return [];
   }
 }
+
+export function updateRecipeRating(
+  recipeSlug: string,
+  rating: number,
+  userIp?: string
+): boolean {
+  ensureInitialized();
+
+  if (!queries) {
+    throw new Error("Database not initialized");
+  }
+
+  try {
+    // Use a simple user identification for now (in production, use proper user auth)
+    const userId = userIp || "anonymous";
+
+    const success = addOrUpdateRating(recipeSlug, rating, userId);
+
+    if (success) {
+      console.log(
+        `✅ Rating updated for recipe ${recipeSlug}: ${rating} stars`
+      );
+    }
+
+    return success;
+  } catch (error) {
+    console.error(`Error updating rating for recipe ${recipeSlug}:`, error);
+    return false;
+  }
+}
