@@ -229,18 +229,18 @@ export default function Recipes() {
             </div>
           </div>
 
-          <div className="flex lg:grid lg:grid-cols-6 gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-hide">
+          <div className="flex items-center lg:grid lg:grid-cols-6 gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-hide">
             <button
               onClick={() => selectCategory("all")}
               className={clsx(
-                "flex-shrink-0 lg:flex-shrink px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105",
+                "flex-shrink-0 lg:flex-shrink px-3 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105",
                 selectedCategory === "all"
-                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
-                  : "bg-white dark:bg-stone-800 text-gray-700 dark:text-stone-200 border border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 hover:shadow-sm"
+                  ? "bg-orange-500 text-white shadow-sm"
+                  : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
               )}
             >
               {t("all")}
-              <span className="ml-1 md:ml-2 px-1.5 py-0.5 text-xs md:text-sm rounded-full bg-black/10">
+              <span className="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-black/10">
                 {recipes.length}
               </span>
             </button>
@@ -251,14 +251,14 @@ export default function Recipes() {
                 key={category.id}
                 onClick={() => selectCategory(category.id)}
                 className={clsx(
-                  "cursor-pointer flex-shrink-0 lg:flex-shrink px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105",
+                  "cursor-pointer flex-shrink-0 lg:flex-shrink px-3 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105",
                   selectedCategory === category.id
-                    ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
-                    : "bg-white dark:bg-stone-800 text-gray-700 dark:text-stone-200 border border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 hover:shadow-sm"
+                    ? "bg-orange-500 text-white shadow-sm"
+                    : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
                 )}
               >
                 {category.name}
-                <span className="ml-1 md:ml-2 px-1.5 py-0.5 text-xs md:text-sm rounded-full bg-black/10">
+                <span className="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-black/10">
                   {category.count}
                 </span>
               </button>
@@ -269,7 +269,7 @@ export default function Recipes() {
               <>
                 <button
                   onClick={() => setShowAllCategories(!showAllCategories)}
-                  className="cursor-pointer flex-shrink-0 px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105 bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
+                  className="cursor-pointer flex-shrink-0 px-3 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105 bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 border border-stone-300 dark:border-stone-600"
                 >
                   {showAllCategories
                     ? t("showLess")
@@ -296,14 +296,14 @@ export default function Recipes() {
                         key={category.id}
                         onClick={() => selectCategory(category.id)}
                         className={clsx(
-                          "cursor-pointer flex-shrink-0 lg:flex-shrink px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105",
+                          "cursor-pointer flex-shrink-0 lg:flex-shrink px-3 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105",
                           selectedCategory === category.id
-                            ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
-                            : "bg-white dark:bg-stone-800 text-gray-700 dark:text-stone-200 border border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 hover:shadow-sm"
+                            ? "bg-orange-500 text-white shadow-sm"
+                            : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
                         )}
                       >
                         {category.name}
-                        <span className="ml-1 md:ml-2 px-1.5 py-0.5 text-xs md:text-sm rounded-full bg-black/10">
+                        <span className="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-black/10">
                           {category.count}
                         </span>
                       </button>
@@ -448,7 +448,7 @@ const RecipeCard: FunctionComponent<{
                 tag
               )} text-white text-xs md:text-sm rounded-full font-medium`}
             >
-              #{tag.charAt(0).toUpperCase() + tag.slice(1)}
+              #{tag}
             </span>
           ))}
         </div>
@@ -528,7 +528,7 @@ const RecipeListItem: FunctionComponent<{
                     tag
                   )} text-white text-xs md:text-sm rounded-full font-medium`}
                 >
-                  #{tag.charAt(0).toUpperCase() + tag.slice(1)}
+                  #{tag}
                 </span>
               ))}
             </div>

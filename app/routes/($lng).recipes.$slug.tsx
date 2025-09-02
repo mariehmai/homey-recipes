@@ -328,7 +328,7 @@ export default function Recipe() {
                   tag
                 )} text-white text-xs md:text-sm rounded-full font-medium`}
               >
-                #{tag.charAt(0).toUpperCase() + tag.slice(1)}
+                #{tag}
               </span>
             ))}
           </div>

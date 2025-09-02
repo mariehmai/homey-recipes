@@ -665,16 +665,11 @@ export default function EditRecipe() {
 
                 <div className="flex flex-wrap gap-2 mb-3">
                   {selectedTags.map((tagName) => {
-                    const tag = availableTags.find((t) => t.name === tagName);
-                    const displayName =
-                      tag?.display_name ||
-                      tagName.charAt(0).toUpperCase() + tagName.slice(1);
-
                     return (
                       <div key={tagName}>
                         <input type="hidden" name="tags" value={tagName} />
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-500 text-white">
-                          #{displayName}
+                          #{tagName}
                           <button
                             type="button"
                             onClick={() => removeTag(tagName)}
@@ -702,7 +697,7 @@ export default function EditRecipe() {
                         }`}
                         disabled={selectedTags.includes(tag.name)}
                       >
-                        #{tag.display_name}
+                        #{tag.name}
                       </button>
                     ))}
                   </div>

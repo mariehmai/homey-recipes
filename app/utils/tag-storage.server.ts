@@ -51,7 +51,7 @@ export function getRecipeTags(recipeSlug: string): Tag[] {
   }
 }
 
-export function createTag(name: string, displayName: string): Tag | null {
+export function createTag(name: string, displayName?: string): Tag | null {
   ensureInitialized();
 
   if (!queries) {
@@ -59,7 +59,12 @@ export function createTag(name: string, displayName: string): Tag | null {
   }
 
   try {
-    const result = queries.insertTag.run(name.toLowerCase(), displayName, 0); // is_default = false (custom tag)
+    // Always lowercase the tag name for consistency
+    const normalizedName = name.toLowerCase().trim();
+    // Use provided displayName or create one from normalized name
+    const finalDisplayName = displayName || normalizedName;
+
+    const result = queries.insertTag.run(normalizedName, finalDisplayName, 0); // is_default = false (custom tag)
 
     if (result.lastInsertRowid) {
       const allTags = getAllTags();
@@ -74,6 +79,24 @@ export function createTag(name: string, displayName: string): Tag | null {
     console.error("Error creating tag:", error);
     return null;
   }
+}
+
+export function findOrCreateTag(name: string): Tag | null {
+  ensureInitialized();
+
+  // Always normalize tag name to lowercase
+  const normalizedName = name.toLowerCase().trim();
+
+  // Check if tag already exists
+  const existingTags = getAllTags();
+  const existingTag = existingTags.find((tag) => tag.name === normalizedName);
+
+  if (existingTag) {
+    return existingTag;
+  }
+
+  // Create new tag if it doesn't exist
+  return createTag(normalizedName);
 }
 
 export function setRecipeTags(recipeSlug: string, tagIds: number[]): boolean {

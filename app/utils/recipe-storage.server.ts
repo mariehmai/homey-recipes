@@ -1,6 +1,7 @@
 import { queries, initializeDatabase, db } from "./db.server";
 import type { Recipe, RecipeComment } from "./recipes";
 import { seedDefaultRecipes } from "./seed.server";
+import { toTitleCase } from "./stringExtensions";
 import {
   getRecipeTags,
   setRecipeTags,
@@ -51,8 +52,8 @@ function getOrCreateTagIds(tagNames: string[]): number[] {
     let existingTag = allTags.find((t) => t.name === normalizedName);
 
     if (!existingTag) {
-      // Create new tag
-      const displayName = tagName.charAt(0).toUpperCase() + tagName.slice(1);
+      // Create new tag with proper title-cased display name
+      const displayName = toTitleCase(tagName.trim());
       existingTag = createTag(normalizedName, displayName) || undefined;
     }
 
