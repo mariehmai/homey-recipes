@@ -120,5 +120,8 @@
   "welcomeBack": "Bon retour",
   "signInToContinue": "Connectez-vous pour accéder à vos recettes",
   "continueWithGoogle": "Continuer avec Google",
-  "bySigningIn": "En vous connectant, vous acceptez nos conditions d'utilisation"
+  "bySigningIn": "En vous connectant, vous acceptez nos conditions d'utilisation",
+  "privacy": "Confidentialité",
+  "makeRecipePublic": "Rendre cette recette publique (les autres peuvent la voir)",
+  "privateRecipeNote": "Les recettes privées ne sont visibles que par vous"
 }

@@ -109,5 +109,8 @@
   "welcomeBack": "Bienvenido de vuelta",
   "signInToContinue": "Inicia sesión para continuar con tus recetas",
   "continueWithGoogle": "Continuar con Google",
-  "bySigningIn": "Al iniciar sesión, aceptas nuestros términos de servicio"
+  "bySigningIn": "Al iniciar sesión, aceptas nuestros términos de servicio",
+  "privacy": "Privacidad",
+  "makeRecipePublic": "Hacer esta receta pública (otros pueden verla)",
+  "privateRecipeNote": "Las recetas privadas solo son visibles para ti"
 }

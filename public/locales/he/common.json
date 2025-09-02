@@ -109,5 +109,8 @@
   "welcomeBack": "ברוך השב",
   "signInToContinue": "התחבר כדי להמשיך עם המתכונים שלך",
   "continueWithGoogle": "המשך עם Google",
-  "bySigningIn": "בהתחברות, אתה מסכים לתנאי השירות שלנו"
+  "bySigningIn": "בהתחברות, אתה מסכים לתנאי השירות שלנו",
+  "privacy": "פרטיות",
+  "makeRecipePublic": "הפוך מתכון זה לציבורי (אחרים יכולים לראות אותו)",
+  "privateRecipeNote": "מתכונים פרטיים גלויים רק לך"
 }
