@@ -1,6 +1,18 @@
 import { queries } from "./db.server";
 import type { Recipe } from "./recipes";
 
+const defaultTags = [
+  { name: "quick", displayName: "Quick" },
+  { name: "sweet", displayName: "Sweet" },
+  { name: "savory", displayName: "Savory" },
+  { name: "soup", displayName: "Soup" },
+  { name: "bbq", displayName: "BBQ" },
+  { name: "spicy", displayName: "Spicy" },
+  { name: "dessert", displayName: "Dessert" },
+  { name: "appetizer", displayName: "Appetizer" },
+  { name: "vegan", displayName: "Vegan" },
+];
+
 const defaultRecipes: Recipe[] = [
   {
     slug: "riz-saute",
@@ -186,6 +198,42 @@ const defaultRecipes: Recipe[] = [
   },
 ];
 
+export function seedDefaultTags(): boolean {
+  try {
+    console.log("🌱 Seeding default tags...");
+
+    if (!queries) {
+      console.error("❌ Database queries not initialized");
+      return false;
+    }
+
+    let seedCount = 0;
+
+    for (const tag of defaultTags) {
+      try {
+        queries.insertTag.run(tag.name, tag.displayName, 1); // is_default = true
+        seedCount++;
+      } catch (error: unknown) {
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "SQLITE_CONSTRAINT_UNIQUE"
+        ) {
+          console.log(`⚠️  Tag ${tag.name} already exists, skipping`);
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    console.log(`✅ Seeded ${seedCount} default tags successfully`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error seeding default tags:", error);
+    return false;
+  }
+}
+
 export function seedDefaultRecipes(): boolean {
   try {
     console.log("🌱 Seeding default recipes...");
@@ -194,6 +242,9 @@ export function seedDefaultRecipes(): boolean {
       console.error("❌ Database queries not initialized");
       return false;
     }
+
+    // Seed tags first
+    seedDefaultTags();
 
     // Check if we already have default recipes
     const { count } = queries.countDefaultRecipes.get() as { count: number };
@@ -222,6 +273,18 @@ export function seedDefaultRecipes(): boolean {
           recipe.author || "Chef",
           1 // is_default = true
         );
+
+        // Add tags to the recipe
+        for (const tagName of recipe.tags) {
+          const allTags = queries.getAllTags.all() as Array<{
+            id: number;
+            name: string;
+          }>;
+          const tag = allTags.find((t) => t.name === tagName);
+          if (tag) {
+            queries.addTagToRecipe.run(recipe.slug, tag.id);
+          }
+        }
 
         seedCount++;
       } catch (error: unknown) {

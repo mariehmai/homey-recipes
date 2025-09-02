@@ -1,12 +1,4 @@
-export type Tag =
-  | "sweet"
-  | "dessert"
-  | "savory"
-  | "bbq"
-  | "soup"
-  | "quick"
-  | "spicy"
-  | "appetizer";
+export type Tag = string;
 
 type Ingredient = {
   unit: "n" | "g" | "kg" | "mL" | "L" | "tsp" | "tbsp" | "cup";

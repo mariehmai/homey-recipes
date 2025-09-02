@@ -14,7 +14,7 @@ import { isFavorite, toggleFavorite } from "~/utils/favorites";
 import { buildI18nUrl } from "~/utils/i18n-redirect";
 import { getRecipeBySlug } from "~/utils/recipe-storage.server";
 import type { Recipe } from "~/utils/recipes";
-import { toTitleCase } from "~/utils/stringExtensions";
+import { getTagColor } from "~/utils/tag-utils";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Recipe" }];
@@ -49,17 +49,6 @@ function getUnitLabels(t: (key: string) => string) {
     cup: t("unitCup"),
   };
 }
-
-const tagColors = {
-  sweet: "bg-pink-500",
-  dessert: "bg-purple-500",
-  savory: "bg-orange-500",
-  bbq: "bg-red-600",
-  soup: "bg-blue-500",
-  quick: "bg-green-500",
-  spicy: "bg-red-500",
-  appetizer: "bg-yellow-500",
-};
 
 export default function Recipe() {
   const { t } = useTranslation();
@@ -335,9 +324,11 @@ export default function Recipe() {
             {recipe.tags.map((tag) => (
               <span
                 key={tag}
-                className={`px-3 py-1 md:px-4 md:py-2 ${tagColors[tag]} text-white text-xs md:text-sm rounded-full font-medium`}
+                className={`px-3 py-1 md:px-4 md:py-2 ${getTagColor(
+                  tag
+                )} text-white text-xs md:text-sm rounded-full font-medium`}
               >
-                #{t(`tag${toTitleCase(tag)}`)}
+                #{tag.charAt(0).toUpperCase() + tag.slice(1)}
               </span>
             ))}
           </div>

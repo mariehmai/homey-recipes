@@ -60,6 +60,22 @@ const SCHEMA = `
     FOREIGN KEY (recipe_slug) REFERENCES recipes(slug) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    display_name TEXT NOT NULL,
+    is_default BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS recipe_tags (
+    recipe_slug TEXT NOT NULL,
+    tag_id INTEGER NOT NULL,
+    PRIMARY KEY (recipe_slug, tag_id),
+    FOREIGN KEY (recipe_slug) REFERENCES recipes(slug) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+  );
+
   CREATE INDEX IF NOT EXISTS idx_recipes_slug ON recipes(slug);
   CREATE INDEX IF NOT EXISTS idx_recipes_tags ON recipes(tags);
   CREATE INDEX IF NOT EXISTS idx_recipes_is_default ON recipes(is_default);
@@ -71,6 +87,11 @@ const SCHEMA = `
   
   CREATE INDEX IF NOT EXISTS idx_recipe_comments_slug ON recipe_comments(recipe_slug);
   CREATE INDEX IF NOT EXISTS idx_recipe_comments_created_at ON recipe_comments(created_at);
+
+  CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
+  CREATE INDEX IF NOT EXISTS idx_tags_is_default ON tags(is_default);
+  CREATE INDEX IF NOT EXISTS idx_recipe_tags_recipe ON recipe_tags(recipe_slug);
+  CREATE INDEX IF NOT EXISTS idx_recipe_tags_tag ON recipe_tags(tag_id);
 
   -- Trigger to update updated_at timestamp
   CREATE TRIGGER IF NOT EXISTS update_recipes_updated_at
@@ -219,6 +240,14 @@ type QueriesType = {
     Database.RunResult
   >;
   deleteComment: Database.Statement<[number], Database.RunResult>;
+
+  // Tag queries
+  getAllTags: Database.Statement<unknown[], unknown>;
+  getRecipeTags: Database.Statement<[string], unknown>;
+  insertTag: Database.Statement<[string, string, number], Database.RunResult>;
+  addTagToRecipe: Database.Statement<[string, number], Database.RunResult>;
+  removeTagFromRecipe: Database.Statement<[string, number], Database.RunResult>;
+  clearRecipeTags: Database.Statement<[string], Database.RunResult>;
 };
 
 export let queries: QueriesType | null = null;
@@ -317,6 +346,40 @@ function initializeQueries() {
     deleteComment: db.prepare(`
       DELETE FROM recipe_comments 
       WHERE id = ?
+    `),
+
+    // Tag queries
+    getAllTags: db.prepare(`
+      SELECT * FROM tags 
+      ORDER BY is_default DESC, name ASC
+    `),
+
+    getRecipeTags: db.prepare(`
+      SELECT t.* 
+      FROM tags t
+      JOIN recipe_tags rt ON t.id = rt.tag_id
+      WHERE rt.recipe_slug = ?
+      ORDER BY t.name ASC
+    `),
+
+    insertTag: db.prepare(`
+      INSERT INTO tags (name, display_name, is_default) 
+      VALUES (?, ?, ?)
+    `),
+
+    addTagToRecipe: db.prepare(`
+      INSERT OR IGNORE INTO recipe_tags (recipe_slug, tag_id) 
+      VALUES (?, ?)
+    `),
+
+    removeTagFromRecipe: db.prepare(`
+      DELETE FROM recipe_tags 
+      WHERE recipe_slug = ? AND tag_id = ?
+    `),
+
+    clearRecipeTags: db.prepare(`
+      DELETE FROM recipe_tags 
+      WHERE recipe_slug = ?
     `),
   };
 

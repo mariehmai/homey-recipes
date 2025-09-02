@@ -32,6 +32,7 @@
   "categorySavory": "Salgado",
   "categorySweet": "Doce",
   "categorySoup": "Sopa",
+  "categoryVegan": "Vegano",
   "search": "Pesquisar...",
   "switchToLightMode": "Mudar para modo claro",
   "switchToDarkMode": "Mudar para modo escuro",
@@ -99,5 +100,7 @@
   "yourRating": "Sua avaliação",
   "thanksForRating": "Obrigado por avaliar!",
   "ratingUpdated": "Avaliação atualizada!",
-  "savingRating": "Salvando"
+  "savingRating": "Salvando",
+  "showMore": "Mostrar mais",
+  "showLess": "Mostrar menos"
 }

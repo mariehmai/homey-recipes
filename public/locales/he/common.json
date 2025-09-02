@@ -32,6 +32,7 @@
   "categorySavory": "מלוח",
   "categorySweet": "מתוק",
   "categorySoup": "מרק",
+  "categoryVegan": "טבעוני",
   "search": "חיפוש...",
   "switchToLightMode": "עבור למצב בהיר",
   "switchToDarkMode": "עבור למצב כהה",
@@ -99,5 +100,7 @@
   "yourRating": "הדירוג שלך",
   "thanksForRating": "תודה על הדירוג!",
   "ratingUpdated": "הדירוג עודכן!",
-  "savingRating": "שומר"
+  "savingRating": "שומר",
+  "showMore": "הצג עוד",
+  "showLess": "הצג פחות"
 }

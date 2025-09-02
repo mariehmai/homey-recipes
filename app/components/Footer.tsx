@@ -1,11 +1,19 @@
 import { Link } from "@remix-run/react";
 import { RiBookOpenLine, RiAddLine } from "@remixicon/react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { toTitleCase } from "~/utils/stringExtensions";
 
+interface Category {
+  id: string;
+  name: string;
+  count: number;
+}
+
 export function Footer() {
   const { t } = useTranslation();
+  const [popularCategories, setPopularCategories] = useState<Category[]>([]);
 
   const quickLinks = [
     {
@@ -20,12 +28,29 @@ export function Footer() {
     },
   ];
 
-  const categories = [
-    { to: "/recipes?category=quick", label: t("categoryQuick") },
-    { to: "/recipes?category=sweet", label: t("categorySweet") },
-    { to: "/recipes?category=savory", label: t("categorySavory") },
-    { to: "/recipes?category=soup", label: t("categorySoup") },
-  ];
+  // Fetch popular categories on client-side
+  useEffect(() => {
+    fetch("/api/popular-categories")
+      .then((response) => response.json())
+      .then((data) => setPopularCategories(data))
+      .catch((error) =>
+        console.error("Error fetching popular categories:", error)
+      );
+  }, []);
+
+  // Use popular categories from API, fallback to default ones
+  const categories =
+    popularCategories.length > 0
+      ? popularCategories.map((cat) => ({
+          to: `/recipes?category=${cat.id}`,
+          label: cat.name,
+        }))
+      : [
+          { to: "/recipes?category=quick", label: t("categoryQuick") },
+          { to: "/recipes?category=sweet", label: t("categorySweet") },
+          { to: "/recipes?category=savory", label: t("categorySavory") },
+          { to: "/recipes?category=soup", label: t("categorySoup") },
+        ];
 
   return (
     <footer className="bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-700">

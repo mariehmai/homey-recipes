@@ -32,6 +32,7 @@
   "categorySavory": "Savory",
   "categorySweet": "Sweet",
   "categorySoup": "Soup",
+  "categoryVegan": "Vegan",
   "search": "Search...",
   "switchToLightMode": "Switch to light mode",
   "switchToDarkMode": "Switch to dark mode",
@@ -110,5 +111,7 @@
   "thanksForRating": "Thanks for rating!",
   "ratingUpdated": "Rating updated!",
   "savingRating": "Saving",
-  "star": "star"
+  "star": "star",
+  "showMore": "Show More",
+  "showLess": "Show Less"
 }

@@ -32,6 +32,7 @@
   "categorySavory": "Salé",
   "categorySweet": "Sucré",
   "categorySoup": "Soupe",
+  "categoryVegan": "Vegan",
   "search": "Rechercher...",
   "switchToLightMode": "Passer au mode clair",
   "switchToDarkMode": "Passer au mode sombre",
@@ -110,5 +111,7 @@
   "thanksForRating": "Merci pour votre note !",
   "ratingUpdated": "Note mise à jour !",
   "savingRating": "Enregistrement",
-  "star": "étoile"
+  "star": "étoile",
+  "showMore": "Afficher plus",
+  "showLess": "Afficher moins"
 }

@@ -10,7 +10,8 @@ import { RatingDisplay } from "~/components/StarRating";
 import { getFavorites, toggleFavorite } from "~/utils/favorites";
 import { getAllRecipes } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
-import { toTitleCase } from "~/utils/stringExtensions";
+import { getAllTags } from "~/utils/tag-storage.server";
+import { getTagColor } from "~/utils/tag-utils";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Recipes" }];
@@ -18,18 +19,8 @@ export const meta: MetaFunction = () => {
 
 export const loader: LoaderFunction = async () => {
   const recipes = getAllRecipes();
-  return json(recipes);
-};
-
-const tagColors = {
-  sweet: "bg-pink-500",
-  dessert: "bg-purple-500",
-  savory: "bg-orange-500",
-  bbq: "bg-red-600",
-  soup: "bg-blue-500",
-  quick: "bg-green-500",
-  spicy: "bg-red-500",
-  appetizer: "bg-yellow-500",
+  const availableTags = getAllTags();
+  return json({ recipes, availableTags });
 };
 
 export default function Recipes() {
@@ -39,44 +30,82 @@ export default function Recipes() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [favoriteRecipes, setFavoriteRecipes] = useState<string[]>([]);
-  const recipes = useLoaderData<Recipe[]>();
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [tagSearchQuery, setTagSearchQuery] = useState("");
+  const { recipes, availableTags } = useLoaderData<{
+    recipes: Recipe[];
+    availableTags: Array<{
+      id: number;
+      name: string;
+      display_name: string;
+      is_default: boolean;
+      created_at: string;
+    }>;
+  }>();
 
   // Load favorites from localStorage
   useEffect(() => {
     setFavoriteRecipes(getFavorites());
   }, []);
 
-  const categories = useMemo(
-    () => [
-      { id: "all", name: t("all"), count: recipes.length },
-      {
-        id: "favorites",
-        name: t("favorites"),
-        count: recipes.filter((r) => favoriteRecipes.includes(r.slug)).length,
-      },
-      {
-        id: "quick",
-        name: t("categoryQuick"),
-        count: recipes.filter((r) => r.tags.includes("quick")).length,
-      },
-      {
-        id: "savory",
-        name: t("categorySavory"),
-        count: recipes.filter((r) => r.tags.includes("savory")).length,
-      },
-      {
-        id: "sweet",
-        name: t("categorySweet"),
-        count: recipes.filter((r) => r.tags.includes("sweet")).length,
-      },
-      {
-        id: "soup",
-        name: t("categorySoup"),
-        count: recipes.filter((r) => r.tags.includes("soup")).length,
-      },
-    ],
-    [t, recipes, favoriteRecipes]
-  );
+  const { mainCategories, additionalCategories, filteredAdditionalCategories } =
+    useMemo(() => {
+      // Static categories (excluding "all" since it has its own button)
+      const staticCategories = [
+        {
+          id: "favorites",
+          name: t("favorites"),
+          count: recipes.filter((r) => favoriteRecipes.includes(r.slug)).length,
+        },
+      ];
+
+      // Popular recipe categories commonly found on recipe websites
+      const popularTagNames = [
+        "quick",
+        "sweet",
+        "savory",
+        "soup",
+        "dessert",
+        "appetizer",
+        "vegan",
+        "spicy",
+        "bbq",
+      ];
+
+      // All available tag categories with counts
+      const allTagCategories = availableTags
+        .map((tag) => ({
+          id: tag.name,
+          name: tag.display_name,
+          count: recipes.filter((r) => r.tags.includes(tag.name)).length,
+          isPopular: popularTagNames.includes(tag.name),
+        }))
+        .filter((category) => category.count > 0); // Only show categories that have recipes
+
+      // Split into popular and additional categories
+      const popularCategories = allTagCategories
+        .filter((cat) => cat.isPopular)
+        .sort((a, b) => b.count - a.count); // Sort by count desc
+
+      const additionalCategories = allTagCategories
+        .filter((cat) => !cat.isPopular)
+        .sort((a, b) => b.count - a.count); // Sort by count desc
+
+      // Filter additional categories by search query
+      const filteredAdditionalCategories = tagSearchQuery
+        ? additionalCategories.filter((cat) =>
+            cat.name.toLowerCase().includes(tagSearchQuery.toLowerCase())
+          )
+        : additionalCategories;
+
+      const mainCategories = [...staticCategories, ...popularCategories];
+
+      return {
+        mainCategories,
+        additionalCategories,
+        filteredAdditionalCategories,
+      };
+    }, [t, recipes, favoriteRecipes, availableTags, tagSearchQuery]);
 
   const filteredRecipes = useMemo(() => {
     const categoryFilter = searchParams.get("category");
@@ -216,7 +245,8 @@ export default function Recipes() {
               </span>
             </button>
 
-            {categories.slice(1).map((category) => (
+            {/* Main popular categories */}
+            {mainCategories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => selectCategory(category.id)}
@@ -233,6 +263,55 @@ export default function Recipes() {
                 </span>
               </button>
             ))}
+
+            {/* Show More button if there are additional categories */}
+            {additionalCategories.length > 0 && (
+              <>
+                <button
+                  onClick={() => setShowAllCategories(!showAllCategories)}
+                  className="cursor-pointer flex-shrink-0 px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105 bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
+                >
+                  {showAllCategories
+                    ? t("showLess")
+                    : `${t("showMore")} (${additionalCategories.length})`}
+                </button>
+
+                {/* Collapsible additional categories */}
+                {showAllCategories && (
+                  <div className="flex flex-wrap gap-2 md:gap-3 w-full">
+                    {/* Search input for tags */}
+                    <div className="w-full mb-2">
+                      <input
+                        type="text"
+                        placeholder={t("search")}
+                        value={tagSearchQuery}
+                        onChange={(e) => setTagSearchQuery(e.target.value)}
+                        className="w-full max-w-xs px-3 py-2 text-sm border border-stone-200 dark:border-stone-600 rounded-full bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    {/* Filtered additional categories */}
+                    {filteredAdditionalCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => selectCategory(category.id)}
+                        className={clsx(
+                          "cursor-pointer flex-shrink-0 lg:flex-shrink px-4 py-2 md:py-3 rounded-full text-sm md:text-base font-medium transition-all whitespace-nowrap hover:scale-105",
+                          selectedCategory === category.id
+                            ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
+                            : "bg-white dark:bg-stone-800 text-gray-700 dark:text-stone-200 border border-gray-200 dark:border-stone-600 hover:border-gray-300 dark:hover:border-stone-500 hover:shadow-sm"
+                        )}
+                      >
+                        {category.name}
+                        <span className="ml-1 md:ml-2 px-1.5 py-0.5 text-xs md:text-sm rounded-full bg-black/10">
+                          {category.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -302,14 +381,7 @@ const RecipeCard: FunctionComponent<{
   t: TFunction<"translation", undefined>;
   isFavorite: boolean;
   onToggleFavorite: (slug: string, e: React.MouseEvent) => void;
-}> = ({
-  recipe,
-  onRecipeClick,
-  formatTime,
-  t,
-  isFavorite,
-  onToggleFavorite,
-}) => {
+}> = ({ recipe, onRecipeClick, formatTime, isFavorite, onToggleFavorite }) => {
   return (
     <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-700 overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-left group relative">
       <button
@@ -372,9 +444,11 @@ const RecipeCard: FunctionComponent<{
           {recipe.tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className={`px-2 py-1 md:px-3 md:py-1.5 ${tagColors[tag]} text-white text-xs md:text-sm rounded-full font-medium`}
+              className={`px-2 py-1 md:px-3 md:py-1.5 ${getTagColor(
+                tag
+              )} text-white text-xs md:text-sm rounded-full font-medium`}
             >
-              #{t(`tag${toTitleCase(tag)}`)}
+              #{tag.charAt(0).toUpperCase() + tag.slice(1)}
             </span>
           ))}
         </div>
@@ -390,14 +464,7 @@ const RecipeListItem: FunctionComponent<{
   t: TFunction<"translation", undefined>;
   isFavorite: boolean;
   onToggleFavorite: (slug: string, e: React.MouseEvent) => void;
-}> = ({
-  recipe,
-  onRecipeClick,
-  formatTime,
-  t,
-  isFavorite,
-  onToggleFavorite,
-}) => {
+}> = ({ recipe, onRecipeClick, formatTime, isFavorite, onToggleFavorite }) => {
   return (
     <div className="relative bg-white dark:bg-stone-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-stone-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
       <button
@@ -457,9 +524,11 @@ const RecipeListItem: FunctionComponent<{
               {recipe.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag}
-                  className={`px-2 py-1 md:px-3 md:py-1.5 ${tagColors[tag]} text-white text-xs md:text-sm rounded-full font-medium`}
+                  className={`px-2 py-1 md:px-3 md:py-1.5 ${getTagColor(
+                    tag
+                  )} text-white text-xs md:text-sm rounded-full font-medium`}
                 >
-                  #{t(`tag${toTitleCase(tag)}`)}
+                  #{tag.charAt(0).toUpperCase() + tag.slice(1)}
                 </span>
               ))}
             </div>

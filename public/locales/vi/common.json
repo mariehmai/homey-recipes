@@ -32,6 +32,7 @@
   "categorySavory": "Mặn",
   "categorySweet": "Ngọt",
   "categorySoup": "Súp",
+  "categoryVegan": "Thuần chay",
   "search": "Tìm kiếm...",
   "switchToLightMode": "Chuyển sang chế độ sáng",
   "switchToDarkMode": "Chuyển sang chế độ tối",
@@ -109,5 +110,7 @@
   "yourRating": "Đánh giá của bạn",
   "thanksForRating": "Cảm ơn bạn đã đánh giá!",
   "ratingUpdated": "Đánh giá đã được cập nhật!",
-  "savingRating": "Đang lưu"
+  "savingRating": "Đang lưu",
+  "showMore": "Hiển thị thêm",
+  "showLess": "Hiển thị ít hơn"
 }

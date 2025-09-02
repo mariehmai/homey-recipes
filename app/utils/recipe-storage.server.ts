@@ -1,6 +1,12 @@
 import { queries, initializeDatabase, db } from "./db.server";
 import type { Recipe, RecipeComment } from "./recipes";
 import { seedDefaultRecipes } from "./seed.server";
+import {
+  getRecipeTags,
+  setRecipeTags,
+  getAllTags,
+  createTag,
+} from "./tag-storage.server";
 
 // Initialize database on first import
 let isInitialized = false;
@@ -33,8 +39,35 @@ interface DatabaseRow {
   comment_count: number;
 }
 
+// Helper function to get or create tag IDs from tag names
+function getOrCreateTagIds(tagNames: string[]): number[] {
+  const allTags = getAllTags();
+  const tagIds: number[] = [];
+
+  for (const tagName of tagNames) {
+    const normalizedName = tagName.toLowerCase().trim();
+    if (!normalizedName) continue;
+
+    let existingTag = allTags.find((t) => t.name === normalizedName);
+
+    if (!existingTag) {
+      // Create new tag
+      const displayName = tagName.charAt(0).toUpperCase() + tagName.slice(1);
+      existingTag = createTag(normalizedName, displayName) || undefined;
+    }
+
+    if (existingTag) {
+      tagIds.push(existingTag.id);
+    }
+  }
+
+  return tagIds;
+}
+
 // Convert database row to Recipe object
 function dbRowToRecipe(row: DatabaseRow): Recipe {
+  const recipeTags = getRecipeTags(row.slug);
+
   return {
     slug: row.slug,
     title: row.title,
@@ -48,7 +81,7 @@ function dbRowToRecipe(row: DatabaseRow): Recipe {
       : undefined,
     servings: row.servings || undefined,
     author: row.author,
-    tags: JSON.parse(row.tags || "[]"),
+    tags: recipeTags.map((tag) => tag.name),
     ingredients: JSON.parse(row.ingredients),
     instructions: JSON.parse(row.instructions),
     createdAt: row.created_at,
@@ -121,12 +154,16 @@ export function addRecipe(recipe: Recipe): Recipe {
       finalRecipe.time?.min || null,
       finalRecipe.time?.max || null,
       finalRecipe.servings || null,
-      JSON.stringify(finalRecipe.tags),
+      "[]", // Empty JSON array for backward compatibility
       JSON.stringify(finalRecipe.ingredients),
       JSON.stringify(finalRecipe.instructions),
       finalRecipe.author || "Anonymous",
       0 // is_default = false (user recipe)
     );
+
+    // Add tags to the recipe
+    const tagIds = getOrCreateTagIds(finalRecipe.tags);
+    setRecipeTags(finalRecipe.slug, tagIds);
 
     console.log(`✅ Recipe ${finalRecipe.slug} added successfully`);
     return finalRecipe;
@@ -166,7 +203,7 @@ export function updateRecipe(
       updatedRecipe.time?.min || null,
       updatedRecipe.time?.max || null,
       updatedRecipe.servings || null,
-      JSON.stringify(updatedRecipe.tags),
+      "[]", // Empty JSON array for backward compatibility
       JSON.stringify(updatedRecipe.ingredients),
       JSON.stringify(updatedRecipe.instructions),
       updatedRecipe.author || "Anonymous",
@@ -176,6 +213,10 @@ export function updateRecipe(
     if (result.changes === 0) {
       return null;
     }
+
+    // Update tags for the recipe
+    const tagIds = getOrCreateTagIds(updatedRecipe.tags);
+    setRecipeTags(slug, tagIds);
 
     console.log(`✅ Recipe ${slug} updated successfully`);
     return { ...updatedRecipe, slug };

@@ -37,6 +37,7 @@ import { buildI18nUrl } from "~/utils/i18n-redirect";
 import { getRecipeBySlug, updateRecipe } from "~/utils/recipe-storage.server";
 import type { Recipe, Tag } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
+import { getAllTags } from "~/utils/tag-storage.server";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const locale = await i18next.getLocale(request);
@@ -52,7 +53,9 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     throw new Response("Recipe not found", { status: 404 });
   }
 
-  return json({ locale, recipe });
+  const availableTags = getAllTags();
+
+  return json({ locale, recipe, availableTags });
 };
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -345,7 +348,7 @@ function SortableInstruction({
 
 export default function EditRecipe() {
   const { t } = useTranslation();
-  const { recipe } = useLoaderData<typeof loader>();
+  const { recipe, availableTags } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -365,6 +368,7 @@ export default function EditRecipe() {
   const [cookTime, setCookTime] = useState(recipe.time?.max?.toString() || "");
   const [servings, setServings] = useState(recipe.servings?.toString() || "");
   const [selectedTags, setSelectedTags] = useState<string[]>(recipe.tags || []);
+  const [newTagInput, setNewTagInput] = useState("");
 
   const [ingredients, setIngredients] = useState<Ingredient[]>(() =>
     recipe.ingredients.map((ing, index) => ({
@@ -382,16 +386,7 @@ export default function EditRecipe() {
     }))
   );
 
-  const availableTags = [
-    "quick",
-    "sweet",
-    "savory",
-    "soup",
-    "bbq",
-    "spicy",
-    "dessert",
-    "appetizer",
-  ];
+  const presetTags = availableTags.filter((tag) => tag.is_default);
 
   const unitOptions = [
     { value: "g", label: t("unitG") },
@@ -453,6 +448,25 @@ export default function EditRecipe() {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
+  };
+
+  const addCustomTag = () => {
+    const trimmedTag = newTagInput.trim().toLowerCase();
+    if (trimmedTag && !selectedTags.includes(trimmedTag)) {
+      setSelectedTags((prev) => [...prev, trimmedTag]);
+      setNewTagInput("");
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setSelectedTags((prev) => prev.filter((tag) => tag !== tagToRemove));
+  };
+
+  const handleNewTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addCustomTag();
+    }
   };
 
   const handleIngredientDragEnd = (event: DragEndEvent) => {
@@ -644,29 +658,73 @@ export default function EditRecipe() {
                 </div>
               </div>
 
-              {/* Tags */}
               <div>
                 <span className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2">
                   {t("tags")}
                 </span>
-                <div className="flex flex-wrap gap-2">
-                  {selectedTags.map((tag) => (
-                    <input key={tag} type="hidden" name="tags" value={tag} />
-                  ))}
-                  {availableTags.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => toggleTag(tag)}
-                      className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                        selectedTags.includes(tag)
-                          ? "bg-orange-500 text-white"
-                          : "bg-gray-200 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-300 dark:hover:bg-stone-600"
-                      }`}
-                    >
-                      #{t(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`)}
-                    </button>
-                  ))}
+
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {selectedTags.map((tagName) => {
+                    const tag = availableTags.find((t) => t.name === tagName);
+                    const displayName =
+                      tag?.display_name ||
+                      tagName.charAt(0).toUpperCase() + tagName.slice(1);
+
+                    return (
+                      <div key={tagName}>
+                        <input type="hidden" name="tags" value={tagName} />
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-500 text-white">
+                          #{displayName}
+                          <button
+                            type="button"
+                            onClick={() => removeTag(tagName)}
+                            className="ml-2 hover:text-orange-200 cursor-pointer"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mb-3">
+                  <div className="flex flex-wrap gap-2">
+                    {presetTags.map((tag) => (
+                      <button
+                        key={tag.name}
+                        type="button"
+                        onClick={() => toggleTag(tag.name)}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                          selectedTags.includes(tag.name)
+                            ? "bg-gray-300 dark:bg-stone-600 text-gray-500 dark:text-stone-400"
+                            : "bg-gray-200 dark:bg-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-300 dark:hover:bg-stone-600"
+                        }`}
+                        disabled={selectedTags.includes(tag.name)}
+                      >
+                        #{tag.display_name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTagInput}
+                    onChange={(e) => setNewTagInput(e.target.value)}
+                    onKeyDown={handleNewTagKeyDown}
+                    placeholder="Add custom tag..."
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomTag}
+                    disabled={!newTagInput.trim()}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Add
+                  </button>
                 </div>
               </div>
             </div>
