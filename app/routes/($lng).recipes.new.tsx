@@ -782,6 +782,7 @@ export default function NewRecipe() {
             </div>
 
             <DndContext
+              id="ingredients-dnd"
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={handleIngredientDragEnd}
@@ -824,6 +825,7 @@ export default function NewRecipe() {
             </div>
 
             <DndContext
+              id="instructions-dnd"
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={handleInstructionDragEnd}
