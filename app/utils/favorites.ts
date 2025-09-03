@@ -1,6 +1,6 @@
 // Favorites management utilities using localStorage
 
-const FAVORITES_KEY = "homey-recipes-favorites";
+const FAVORITES_KEY = "papilles-et-mami-favorites";
 
 export function getFavorites(): string[] {
   if (typeof window === "undefined") return [];

@@ -1,6 +1,6 @@
 # Papilles & Mami
 
-A Remix app deployed with Fly.io showing simple recipes. Deployed at https://homey-recipes.fly.dev
+A Remix app deployed with Fly.io showing simple recipes. Deployed at https://papilles-et-mami.fly.dev
 
 - [Remix Docs](https:o//remix.run/docs)
 - [Fly.io](https://fly.io/docs)

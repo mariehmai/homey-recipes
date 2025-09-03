@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   stale:
-    if: github.repository == 'mariehmai/homey-recipes'
+    if: github.repository == 'mariehmai/papilles-et-mami'
     runs-on: ubuntu-latest
     steps:
       - name: 🥺 Handle Ghosting
