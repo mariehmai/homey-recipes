@@ -271,6 +271,12 @@ export default function Index() {
                 color: "from-yellow-400 to-amber-500",
                 tag: "appetizer",
               },
+              {
+                name: t("categoryVegan"),
+                icon: "🌱",
+                color: "from-green-400 to-emerald-500",
+                tag: "vegan",
+              },
             ].map((category) => (
               <a
                 key={category.tag}
