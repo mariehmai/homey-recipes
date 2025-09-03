@@ -134,7 +134,7 @@ export default function Profile() {
           <div className="flex items-center justify-between">
             <BackButton />
             <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-              {t("profile") || "Profile"}
+              {t("profile", { defaultValue: "Profile" })}
             </h1>
             <div></div>
           </div>
@@ -171,7 +171,7 @@ export default function Profile() {
                 htmlFor="username"
                 className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-2"
               >
-                {t("username") || "Username"}
+                {t("username", { defaultValue: "Username" })}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -184,15 +184,19 @@ export default function Profile() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder={t("enterUsername") || "Enter your username"}
+                  placeholder={t("enterUsername", {
+                    defaultValue: "Enter your username",
+                  })}
                   minLength={2}
                   maxLength={50}
                   required
                 />
               </div>
               <p className="mt-1 text-xs text-gray-500 dark:text-stone-400">
-                {t("usernameNote") ||
-                  "This will be shown when you comment on recipes instead of your full name."}
+                {t("usernameNote", {
+                  defaultValue:
+                    "This will be shown when you comment on recipes instead of your full name.",
+                })}
               </p>
             </div>
 
@@ -205,8 +209,8 @@ export default function Profile() {
                 <RiSaveLine size={16} />
                 <span>
                   {isSubmitting
-                    ? t("saving") || "Saving..."
-                    : t("saveProfile") || "Save Profile"}
+                    ? t("saving", { defaultValue: "Saving..." })
+                    : t("saveProfile", { defaultValue: "Save Profile" })}
                 </span>
               </button>
             </div>

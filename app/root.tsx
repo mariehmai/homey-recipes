@@ -246,7 +246,7 @@ export default function App() {
             className="w-full text-left px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors flex items-center space-x-2"
           >
             <RiUserLine className="w-4 h-4" />
-            <span>{t("profile") || "Profile"}</span>
+            <span>{t("profile", { defaultValue: "Profile" })}</span>
           </button>
         </div>
 
@@ -256,7 +256,7 @@ export default function App() {
             className="w-full text-left px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors rounded-b-lg flex items-center space-x-2"
           >
             <RiLogoutBoxLine className="w-4 h-4" />
-            <span>{t("logout") || "Sign Out"}</span>
+            <span>{t("logout", { defaultValue: "Sign Out" })}</span>
           </button>
         </Form>
       </div>,
@@ -331,7 +331,7 @@ export default function App() {
                   >
                     <RiUserLine className="w-4 h-4" />
                     <span className="hidden sm:inline">
-                      {t("signIn") || "Sign In"}
+                      {t("signIn", { defaultValue: "Sign In" })}
                     </span>
                   </button>
                 )}

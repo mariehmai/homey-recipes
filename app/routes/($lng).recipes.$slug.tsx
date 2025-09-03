@@ -364,7 +364,7 @@ export default function Recipe() {
             {user ? (
               <div className="bg-white dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  {t("leaveComment") || "Leave a Comment"}
+                  {t("leaveComment", { defaultValue: "Leave a Comment" })}
                 </h3>
 
                 {actionData?.error && (
@@ -381,9 +381,9 @@ export default function Recipe() {
                         name="comment"
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
-                        placeholder={
-                          t("writeComment") || "Write your comment..."
-                        }
+                        placeholder={t("writeComment", {
+                          defaultValue: "Write your comment...",
+                        })}
                         disabled={isSubmitting}
                         required
                       />
@@ -398,8 +398,8 @@ export default function Recipe() {
                       <RiSendPlaneLine size={16} />
                       <span>
                         {isSubmitting
-                          ? t("posting") || "Posting..."
-                          : t("postComment") || "Post Comment"}
+                          ? t("posting", { defaultValue: "Posting..." })
+                          : t("postComment", { defaultValue: "Post Comment" })}
                       </span>
                     </button>
                   </div>
@@ -408,13 +408,15 @@ export default function Recipe() {
             ) : (
               <div className="bg-gray-50 dark:bg-stone-800 rounded-lg p-4 md:p-6 border border-gray-200 dark:border-stone-600 text-center">
                 <p className="text-gray-600 dark:text-stone-400 mb-4">
-                  {t("loginToComment") || "Please log in to leave a comment."}
+                  {t("loginToComment", {
+                    defaultValue: "Please log in to leave a comment.",
+                  })}
                 </p>
                 <Link
                   to="/login"
                   className="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
                 >
-                  {t("signIn") || "Sign In"}
+                  {t("signIn", { defaultValue: "Sign In" })}
                 </Link>
               </div>
             )}
@@ -424,8 +426,9 @@ export default function Recipe() {
               {comments.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-500 dark:text-stone-400">
-                    {t("noCommentsYet") ||
-                      "No comments yet. Be the first to comment!"}
+                    {t("noCommentsYet", {
+                      defaultValue: "No comments yet. Be the first to comment!",
+                    })}
                   </p>
                 </div>
               ) : (
@@ -526,7 +529,7 @@ export default function Recipe() {
             {recipe.isPublic === false && (
               <span className="px-3 py-1 md:px-4 md:py-2 bg-gray-500 text-white text-xs md:text-sm rounded-full font-medium flex items-center space-x-1">
                 <span>🔒</span>
-                <span>{t("private") || "Private"}</span>
+                <span>{t("private", { defaultValue: "Private" })}</span>
               </span>
             )}
           </div>

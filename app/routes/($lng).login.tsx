@@ -38,10 +38,12 @@ export default function Login() {
         <div className="bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-gray-200 dark:border-stone-600 p-8">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              {t("welcomeBack") || "Welcome Back"}
+              {t("welcomeBack", { defaultValue: "Welcome Back" })}
             </h1>
             <p className="text-gray-600 dark:text-stone-300">
-              {t("signInToContinue") || "Sign in to continue to your recipes"}
+              {t("signInToContinue", {
+                defaultValue: "Sign in to continue to your recipes",
+              })}
             </p>
           </div>
 
@@ -68,13 +70,18 @@ export default function Login() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              <span>{t("continueWithGoogle") || "Continue with Google"}</span>
+              <span>
+                {t("continueWithGoogle", {
+                  defaultValue: "Continue with Google",
+                })}
+              </span>
             </button>
           </Form>
 
           <div className="mt-8 text-center text-sm text-gray-500 dark:text-stone-500">
-            {t("bySigningIn") ||
-              "By signing in, you agree to our terms of service"}
+            {t("bySigningIn", {
+              defaultValue: "By signing in, you agree to our terms of service",
+            })}
           </div>
         </div>
       </main>

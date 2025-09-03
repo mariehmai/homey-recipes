@@ -733,17 +733,20 @@ export default function NewRecipe() {
 
               <div>
                 <span className="block text-sm font-medium text-gray-700 dark:text-stone-300 mb-3">
-                  {t("privacy") || "Privacy"}
+                  {t("privacy", { defaultValue: "Privacy" })}
                 </span>
                 <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-stone-700 rounded-lg border border-gray-200 dark:border-stone-600">
                   <div>
                     <label className="text-sm font-medium text-gray-700 dark:text-stone-300">
-                      {t("makeRecipePublic") ||
-                        "Make this recipe public (others can see it)"}
+                      {t("makeRecipePublic", {
+                        defaultValue:
+                          "Make this recipe public (others can see it)",
+                      })}
                     </label>
                     <p className="text-xs text-gray-500 dark:text-stone-400 mt-1">
-                      {t("privateRecipeNote") ||
-                        "Private recipes are only visible to you"}
+                      {t("privateRecipeNote", {
+                        defaultValue: "Private recipes are only visible to you",
+                      })}
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">

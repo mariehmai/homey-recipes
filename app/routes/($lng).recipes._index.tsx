@@ -51,100 +51,157 @@ export default function Recipes() {
     setFavoriteRecipes(getFavorites());
   }, []);
 
-  const { mainCategories, additionalCategories, filteredAdditionalCategories } =
-    useMemo(() => {
-      // Static categories (excluding "all" since it has its own button)
-      const staticCategories = [
-        {
-          id: "favorites",
-          name: t("favorites"),
-          count: recipes.filter((r) => favoriteRecipes.includes(r.slug)).length,
-        },
-      ];
+  const {
+    userFilters,
+    mainCategories,
+    additionalCategories,
+    filteredAdditionalCategories,
+  } = useMemo(() => {
+    const categoryFilter = searchParams.get("category");
 
-      // Add "My Recipes" category only for authenticated users
-      if (user) {
-        staticCategories.push({
-          id: "my-recipes",
-          name: t("myRecipes") || "My Recipes",
-          count: recipes.filter((r) => r.userId === user.id).length,
-        });
+    // Helper function to filter by current category selection
+    const getCategoryFilteredRecipes = (recipes: Recipe[]) => {
+      if (!categoryFilter || categoryFilter === "all") {
+        return recipes;
       }
+      return recipes.filter((r) => r.tags.includes(categoryFilter as Tag));
+    };
 
-      // Popular recipe categories commonly found on recipe websites
-      const popularTagNames = [
-        "quick",
-        "sweet",
-        "savory",
-        "soup",
-        "dessert",
-        "appetizer",
-        "vegan",
-        "spicy",
-        "bbq",
-      ];
+    // User-specific filters (counts based on current category filter)
+    const categoryFilteredRecipes = getCategoryFilteredRecipes(recipes);
+    const userFilters = [
+      {
+        id: "favorites",
+        name: t("favorites"),
+        count: categoryFilteredRecipes.filter((r) =>
+          favoriteRecipes.includes(r.slug)
+        ).length,
+      },
+    ];
 
-      // All available tag categories with counts
-      const allTagCategories = availableTags
-        .map((tag) => ({
-          id: tag.name,
-          name: tag.display_name,
-          count: recipes.filter((r) => r.tags.includes(tag.name)).length,
-          isPopular: popularTagNames.includes(tag.name),
-        }))
-        .filter((category) => category.count > 0); // Only show categories that have recipes
+    // Add "My Recipes" filter only for authenticated users
+    if (user) {
+      userFilters.push({
+        id: "my-recipes",
+        name: t("myRecipes", { defaultValue: "My Recipes" }),
+        count: categoryFilteredRecipes.filter((r) => r.userId === user.id)
+          .length,
+      });
+    }
 
-      // Split into popular and additional categories
-      const popularCategories = allTagCategories
-        .filter((cat) => cat.isPopular)
-        .sort((a, b) => b.count - a.count); // Sort by count desc
+    // Popular recipe categories commonly found on recipe websites
+    const popularTagNames = [
+      "quick",
+      "sweet",
+      "savory",
+      "soup",
+      "dessert",
+      "appetizer",
+      "vegan",
+      "spicy",
+      "bbq",
+    ];
 
-      const additionalCategories = allTagCategories
-        .filter((cat) => !cat.isPopular)
-        .sort((a, b) => b.count - a.count); // Sort by count desc
+    // Helper function to filter by current user filter selection
+    const getUserFilteredRecipes = (recipes: Recipe[]) => {
+      const userFilter = searchParams.get("userFilter");
+      if (!userFilter) {
+        return recipes;
+      }
+      return recipes.filter((r) => {
+        if (userFilter === "favorites") return favoriteRecipes.includes(r.slug);
+        if (userFilter === "my-recipes") return user && r.userId === user.id;
+        return true;
+      });
+    };
 
-      // Filter additional categories by search query
-      const filteredAdditionalCategories = tagSearchQuery
-        ? additionalCategories.filter((cat) =>
-            cat.name.toLowerCase().includes(tagSearchQuery.toLowerCase())
-          )
-        : additionalCategories;
+    // All available tag categories with counts (based on current user filter)
+    const userFilteredRecipes = getUserFilteredRecipes(recipes);
+    const allTagCategories = availableTags
+      .map((tag) => ({
+        id: tag.name,
+        name: tag.display_name,
+        count: userFilteredRecipes.filter((r) => r.tags.includes(tag.name))
+          .length,
+        isPopular: popularTagNames.includes(tag.name),
+      }))
+      .filter((category) => category.count > 0); // Only show categories that have recipes
 
-      const mainCategories = [...staticCategories, ...popularCategories];
+    // Split into popular and additional categories
+    const popularCategories = allTagCategories
+      .filter((cat) => cat.isPopular)
+      .sort((a, b) => b.count - a.count); // Sort by count desc
 
-      return {
-        mainCategories,
-        additionalCategories,
-        filteredAdditionalCategories,
-      };
-    }, [t, recipes, favoriteRecipes, availableTags, tagSearchQuery, user]);
+    const additionalCategories = allTagCategories
+      .filter((cat) => !cat.isPopular)
+      .sort((a, b) => b.count - a.count); // Sort by count desc
+
+    // Filter additional categories by search query
+    const filteredAdditionalCategories = tagSearchQuery
+      ? additionalCategories.filter((cat) =>
+          cat.name.toLowerCase().includes(tagSearchQuery.toLowerCase())
+        )
+      : additionalCategories;
+
+    const mainCategories = popularCategories;
+
+    return {
+      userFilters,
+      mainCategories,
+      additionalCategories,
+      filteredAdditionalCategories,
+    };
+  }, [
+    t,
+    recipes,
+    favoriteRecipes,
+    availableTags,
+    tagSearchQuery,
+    user,
+    searchParams,
+  ]);
 
   const filteredRecipes = useMemo(() => {
     const categoryFilter = searchParams.get("category");
+    const userFilter = searchParams.get("userFilter");
+
     return recipes.filter((recipe) => {
       const matchesSearch =
         recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.summary?.toLowerCase().includes(searchQuery.toLowerCase());
+
       const matchesCategory =
         !categoryFilter ||
         categoryFilter === "all" ||
-        (categoryFilter === "favorites" &&
-          favoriteRecipes.includes(recipe.slug)) ||
-        (categoryFilter === "my-recipes" &&
-          user &&
-          recipe.userId === user.id) ||
         recipe.tags.includes(categoryFilter as Tag);
-      return matchesSearch && matchesCategory;
+
+      const matchesUserFilter =
+        !userFilter ||
+        (userFilter === "favorites" && favoriteRecipes.includes(recipe.slug)) ||
+        (userFilter === "my-recipes" && user && recipe.userId === user.id);
+
+      return matchesSearch && matchesCategory && matchesUserFilter;
     });
   }, [searchQuery, searchParams, recipes, favoriteRecipes, user]);
 
   function selectCategory(category: string) {
     if (category === "all") {
-      setSearchParams();
+      searchParams.delete("category");
     } else {
       searchParams.set("category", category);
-      setSearchParams(searchParams, { preventScrollReset: true });
     }
+    setSearchParams(searchParams, { preventScrollReset: true });
+  }
+
+  function selectUserFilter(userFilter: string) {
+    const currentUserFilter = searchParams.get("userFilter");
+    if (currentUserFilter === userFilter) {
+      // Toggle off if clicking the same filter
+      searchParams.delete("userFilter");
+    } else {
+      searchParams.set("userFilter", userFilter);
+    }
+    setSearchParams(searchParams, { preventScrollReset: true });
   }
 
   const handleToggleFavorite = (recipeSlug: string, e: React.MouseEvent) => {
@@ -161,6 +218,7 @@ export default function Recipes() {
   }
 
   const selectedCategory = searchParams.get("category") || "all";
+  const selectedUserFilter = searchParams.get("userFilter");
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
@@ -234,6 +292,40 @@ export default function Recipes() {
             </div>
           </div>
 
+          {/* User Filters Section */}
+          {userFilters.some((filter) => filter.count > 0) && (
+            <>
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <h2 className="font-bold text-gray-900 dark:text-white text-sm md:text-base">
+                  {t("myFilters", { defaultValue: "My Filters" })}:
+                </h2>
+              </div>
+
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide mb-4 md:mb-6">
+                {userFilters
+                  .filter((filter) => filter.count > 0)
+                  .map((filter) => (
+                    <button
+                      key={filter.id}
+                      onClick={() => selectUserFilter(filter.id)}
+                      className={clsx(
+                        "cursor-pointer flex-shrink-0 px-3 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105",
+                        selectedUserFilter === filter.id
+                          ? "bg-blue-500 text-white shadow-sm"
+                          : "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800"
+                      )}
+                    >
+                      {filter.name}
+                      <span className="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-black/10">
+                        {filter.count}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            </>
+          )}
+
+          {/* Category Filters Section */}
           <div className="flex items-center justify-between mb-3 md:mb-4">
             <h2 className="font-bold text-gray-900 dark:text-white text-sm md:text-base">
               {t("categoryFilter")}:
@@ -378,7 +470,7 @@ export default function Recipes() {
             <button
               onClick={() => {
                 setSearchQuery("");
-                setSearchParams();
+                setSearchParams(new URLSearchParams());
               }}
               className="cursor-pointer bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-medium hover:shadow-lg transition-all text-sm md:text-base hover:scale-105"
             >
@@ -478,7 +570,7 @@ const RecipeCard: FunctionComponent<{
           {recipe.isPublic === false && (
             <span className="px-2 py-1 md:px-3 md:py-1.5 bg-gray-500 text-white text-xs md:text-sm rounded-full font-medium flex items-center space-x-1">
               <span>🔒</span>
-              <span>{t("private") || "Private"}</span>
+              <span>{t("private", { defaultValue: "Private" })}</span>
             </span>
           )}
         </div>
@@ -571,7 +663,7 @@ const RecipeListItem: FunctionComponent<{
               {recipe.isPublic === false && (
                 <span className="px-2 py-1 md:px-3 md:py-1.5 bg-gray-500 text-white text-xs md:text-sm rounded-full font-medium flex items-center space-x-1">
                   <span>🔒</span>
-                  <span>{t("private") || "Private"}</span>
+                  <span>{t("private", { defaultValue: "Private" })}</span>
                 </span>
               )}
             </div>
