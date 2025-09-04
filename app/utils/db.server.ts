@@ -5,8 +5,8 @@ import path from "path";
 
 const dbPath =
   process.env.NODE_ENV === "production"
-    ? path.join("/data", "recipes.db")
-    : path.join(process.cwd(), "data", "recipes.db");
+    ? path.join("/data", "papilles_et_mami.db")
+    : path.join(process.cwd(), "data", "papilles_et_mami.db");
 const dataDir = path.dirname(dbPath);
 
 // Ensure data directory exists
