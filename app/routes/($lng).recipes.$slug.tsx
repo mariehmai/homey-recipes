@@ -21,15 +21,16 @@ import { RecipeRating } from "~/components/RecipeRating";
 import { ServingCalculator } from "~/components/ServingCalculator";
 import { UserAvatar } from "~/components/UserAvatar";
 import i18next from "~/i18next.server";
-import {
-  getRecipeComments,
-  addComment,
-  type RecipeComment,
-} from "~/services/comment.server";
-import { getRecipeBySlug, type ClientRecipe } from "~/services/recipe.server";
 import { authenticator } from "~/utils/auth.server";
+import { queries } from "~/utils/db.server";
 import { isFavorite, toggleFavorite } from "~/utils/favorites";
 import { buildI18nUrl } from "~/utils/i18n-redirect";
+import {
+  getRecipeBySlug,
+  getRecipeComments,
+  addComment,
+} from "~/utils/recipe-storage.server";
+import type { Recipe, RecipeComment } from "~/utils/recipes";
 import { getTagColor } from "~/utils/tag-utils";
 
 export const meta: MetaFunction = () => {
@@ -45,13 +46,13 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const recipe = await getRecipeBySlug(slug);
+  const recipe = getRecipeBySlug(slug);
 
   if (!recipe) {
     throw new Response("Not Found", { status: 404 });
   }
 
-  const comments = await getRecipeComments(slug);
+  const comments = getRecipeComments(slug);
 
   return json({ recipe, locale, user, comments });
 };
@@ -75,21 +76,40 @@ export const action: ActionFunction = async ({ request, params }) => {
     return json({ error: "Comment cannot be empty" }, { status: 400 });
   }
 
-  // Get user's display name: use first name only
-  const displayName = user.name.split(" ")[0];
+  // Get user's display name: use username if available, otherwise first name only
+  let displayName = user.name;
 
-  // Get user IP for spam prevention
-  const userIp =
-    request.headers.get("x-forwarded-for") ||
-    request.headers.get("x-real-ip") ||
-    "127.0.0.1";
+  // Get user data from database to check for custom username
+  if (queries) {
+    try {
+      const dbUser = queries.getUserById.get(user.id) as
+        | { username?: string }
+        | undefined;
+      if (dbUser?.username) {
+        displayName = dbUser.username;
+      } else {
+        // Use first name only
+        displayName = user.name.split(" ")[0];
+      }
+    } catch (error) {
+      console.error("Error fetching user username:", error);
+      // Fallback to first name only
+      displayName = user.name.split(" ")[0];
+    }
+  } else {
+    // Fallback to first name only if no database
+    displayName = user.name.split(" ")[0];
+  }
 
-  const success = await addComment(
+  // Get user IP for spam prevention (in a real app, you'd use proper user ID)
+  const userIp = request.headers.get("x-forwarded-for") || "unknown";
+
+  const success = addComment(
     slug,
     displayName,
     comment.trim(),
     userIp,
-    user?.id
+    user.id
   );
 
   if (!success) {
@@ -116,7 +136,7 @@ function getUnitLabels(t: (key: string) => string) {
 export default function Recipe() {
   const { t } = useTranslation();
   const { recipe, locale, user, comments } = useLoaderData<{
-    recipe: ClientRecipe;
+    recipe: Recipe;
     locale: string;
     user: { id: string; name: string; email: string; avatar: string } | null;
     comments: RecipeComment[];
@@ -133,7 +153,7 @@ export default function Recipe() {
   );
   const [isFavoriteState, setIsFavoriteState] = useState(false);
   const [scaledIngredients, setScaledIngredients] = useState<
-    ClientRecipe["ingredients"]
+    Recipe["ingredients"]
   >(recipe.ingredients);
   const [currentServings, setCurrentServings] = useState(recipe.servings || 4);
 
@@ -148,7 +168,7 @@ export default function Recipe() {
   };
 
   const handleServingsChange = (
-    newScaledIngredients: ClientRecipe["ingredients"],
+    newScaledIngredients: Recipe["ingredients"],
     newServings: number
   ) => {
     setScaledIngredients(newScaledIngredients);

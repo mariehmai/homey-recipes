@@ -33,12 +33,12 @@ import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
 import i18next from "~/i18next.server";
-import { createRecipe } from "~/services/recipe.server";
-import type { Recipe } from "~/services/recipe.server";
-import { getAllTags } from "~/services/tag.server";
 import { authenticator } from "~/utils/auth.server";
 import { buildI18nUrl } from "~/utils/i18n-redirect";
+import { addRecipe } from "~/utils/recipe-storage.server";
+import type { Recipe, Tag } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
+import { getAllTags } from "~/utils/tag-storage.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await authenticator.isAuthenticated(request);
@@ -50,7 +50,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const locale = await i18next.getLocale(request);
-  const availableTags = await getAllTags();
+  const availableTags = getAllTags();
   return json({ locale, availableTags, user });
 };
 
@@ -72,6 +72,17 @@ export const handle = {
   i18n: "common",
 };
 
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove accents
+    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+    .trim();
+}
+
 export const action: ActionFunction = async ({ request }) => {
   const user = await authenticator.isAuthenticated(request);
 
@@ -92,10 +103,8 @@ export const action: ActionFunction = async ({ request }) => {
   const prepTime = formData.get("prepTime") as string;
   const cookTime = formData.get("cookTime") as string;
   const servings = formData.get("servings") as string;
-  const isPublic = formData.get("isPublic") === "on";
-  
-  // Parse tags
   const tags = formData.getAll("tags") as string[];
+  const isPublic = formData.get("isPublic") === "on";
 
   // Parse ingredients
   const ingredients = [];
@@ -143,23 +152,27 @@ export const action: ActionFunction = async ({ request }) => {
     );
   }
 
-  // Create new recipe data
-  const newRecipeData = {
+  // Create new recipe
+  const newRecipe: Recipe = {
+    slug: generateSlug(title),
     title: title.trim(),
     summary: summary.trim(),
     emoji: emoji?.trim() || undefined,
     author: user?.name || author?.trim() || "Anonymous",
-    prepTime: prepTime ? parseInt(prepTime) : undefined,
-    cookTime: cookTime ? parseInt(cookTime) : undefined,
+    userId: user?.id,
+    time: {
+      min: parseInt(prepTime),
+      max: cookTime ? parseInt(cookTime) : undefined,
+    },
     servings: servings ? parseInt(servings) : undefined,
     ingredients,
     instructions,
+    tags: tags as Tag[],
     isPublic,
-    tags,
   };
 
   // Save to server storage
-  const savedRecipe = await createRecipe(newRecipeData, user?.id);
+  const savedRecipe = addRecipe(newRecipe);
 
   // Build redirect URL with proper language prefix
   const redirectUrl = buildI18nUrl(`/recipes/${savedRecipe.slug}`, locale);
@@ -380,7 +393,7 @@ export default function NewRecipe() {
     { id: "1", description: "" },
   ]);
 
-  const presetTags = availableTags.filter((tag) => tag.isDefault);
+  const presetTags = availableTags.filter((tag) => tag.is_default);
   const [newTagInput, setNewTagInput] = useState("");
 
   const unitOptions = [

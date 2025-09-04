@@ -22,6 +22,7 @@ import type {
 } from "@remix-run/node";
 import { redirect, json } from "@remix-run/node";
 import {
+  Form,
   useActionData,
   useLoaderData,
   useNavigation,
@@ -32,11 +33,11 @@ import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
 import i18next from "~/i18next.server";
-import { getRecipeBySlug } from "~/services/recipe.server";
-import type { ClientRecipe } from "~/services/recipe.server";
-import { getAllTags } from "~/services/tag.server";
 import { buildI18nUrl } from "~/utils/i18n-redirect";
+import { getRecipeBySlug, updateRecipe } from "~/utils/recipe-storage.server";
+import type { Recipe, Tag } from "~/utils/recipes";
 import { toTitleCase } from "~/utils/stringExtensions";
+import { getAllTags } from "~/utils/tag-storage.server";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const locale = await i18next.getLocale(request);
@@ -46,13 +47,13 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     throw new Response("Recipe not found", { status: 404 });
   }
 
-  const recipe = await getRecipeBySlug(slug);
+  const recipe = getRecipeBySlug(slug);
 
   if (!recipe) {
     throw new Response("Recipe not found", { status: 404 });
   }
 
-  const availableTags = await getAllTags();
+  const availableTags = getAllTags();
 
   return json({ locale, recipe, availableTags });
 };
@@ -83,13 +84,7 @@ export const action: ActionFunction = async ({ params, request }) => {
   const slug = params.slug;
 
   if (!slug) {
-    return json({ error: "Recipe not found" }, { status: 404 });
-  }
-
-  // Get existing recipe data
-  const existingRecipe = await getRecipeBySlug(slug);
-  if (!existingRecipe) {
-    return json({ error: "Recipe not found" }, { status: 404 });
+    return Response.json({ error: "Recipe not found" }, { status: 404 });
   }
 
   const title = formData.get("title") as string;
@@ -117,7 +112,7 @@ export const action: ActionFunction = async ({ params, request }) => {
       ingredients.push({
         name: name.trim(),
         quantity: quantity.trim(),
-        unit: unit as ClientRecipe["ingredients"][0]["unit"],
+        unit: unit as Recipe["ingredients"][0]["unit"],
       });
     }
   }
@@ -142,47 +137,30 @@ export const action: ActionFunction = async ({ params, request }) => {
     ingredients.length === 0 ||
     instructions.length === 0
   ) {
-    return json({ error: "fillAllRequiredFields" }, { status: 400 });
+    return Response.json({ error: "fillAllRequiredFields" }, { status: 400 });
   }
 
-  // Update recipe with existing data preserved
+  // Update recipe
   const updatedRecipe = {
-    ...existingRecipe,
     title: title.trim(),
     summary: summary.trim(),
     emoji: emoji?.trim() || undefined,
     author: author?.trim() || "Anonymous",
-    prepTime: parseInt(prepTime),
-    cookTime: cookTime ? parseInt(cookTime) : undefined,
+    time: {
+      min: parseInt(prepTime),
+      max: cookTime ? parseInt(cookTime) : undefined,
+    },
     servings: servings ? parseInt(servings) : undefined,
     ingredients,
     instructions,
-    tags,
+    tags: tags as Tag[],
     isPublic,
   };
 
-  // Use server-side update directly
-  const { updateRecipe: updateRecipeServer } = await import("~/services/recipe.server");
-  
-  const result = await updateRecipeServer(
-    existingRecipe.id,
-    {
-      title: updatedRecipe.title,
-      summary: updatedRecipe.summary,
-      emoji: updatedRecipe.emoji,
-      author: updatedRecipe.author,
-      prepTime: updatedRecipe.prepTime,
-      cookTime: updatedRecipe.cookTime,
-      servings: updatedRecipe.servings,
-      ingredients: updatedRecipe.ingredients,
-      instructions: updatedRecipe.instructions,
-      tags: updatedRecipe.tags,
-      isPublic: updatedRecipe.isPublic,
-    }
-  );
+  const result = updateRecipe(slug, updatedRecipe);
 
   if (!result) {
-    return json({ error: "Failed to update recipe" }, { status: 500 });
+    return Response.json({ error: "Failed to update recipe" }, { status: 500 });
   }
 
   const redirectUrl = buildI18nUrl(`/recipes/${slug}`, locale);
@@ -413,52 +391,7 @@ export default function EditRecipe() {
     }))
   );
 
-  const presetTags = availableTags.filter((tag) => tag.isDefault);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const recipeData = {
-      id: recipe.id,
-      title,
-      summary,
-      emoji: emoji || undefined,
-      author: author || "Anonymous",
-      prepTime: prepTime ? parseInt(prepTime) : undefined,
-      cookTime: cookTime ? parseInt(cookTime) : undefined,
-      servings: servings ? parseInt(servings) : undefined,
-      ingredients: ingredients.map(ing => ({
-        name: ing.name,
-        quantity: ing.quantity,
-        unit: ing.unit,
-      })),
-      instructions: instructions.map(inst => ({
-        description: inst.description,
-      })),
-      tags: selectedTags,
-      isPublic,
-    };
-
-    try {
-      const response = await fetch(`/api/recipes/${recipe.slug}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(recipeData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update recipe");
-      }
-
-      // Redirect to the recipe page
-      window.location.href = `/recipes/${recipe.slug}`;
-    } catch (error) {
-      console.error("Failed to update recipe:", error);
-      // You might want to show an error message to the user
-    }
-  };
+  const presetTags = availableTags.filter((tag) => tag.is_default);
 
   const unitOptions = [
     { value: "g", label: t("unitG") },
@@ -588,7 +521,7 @@ export default function EditRecipe() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <Form method="post" className="space-y-8">
           {/* Basic Information */}
           <div className="bg-white dark:bg-stone-800 rounded-lg p-6 border border-gray-200 dark:border-stone-600">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
@@ -928,7 +861,7 @@ export default function EditRecipe() {
               {isSubmitting ? t("updatingRecipe") : t("updateRecipe")}
             </button>
           </div>
-        </form>
+        </Form>
       </main>
     </div>
   );

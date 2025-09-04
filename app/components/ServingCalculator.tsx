@@ -2,13 +2,13 @@ import { RiCalculatorLine, RiSubtractLine, RiAddLine } from "@remixicon/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { ClientRecipe } from "~/services/recipe.server";
+import type { Recipe } from "~/utils/recipes";
 import { scaleRecipe } from "~/utils/unit-converter";
 
 interface ServingCalculatorProps {
-  recipe: ClientRecipe;
+  recipe: Recipe;
   onServingsChange?: (
-    scaledIngredients: ClientRecipe["ingredients"],
+    scaledIngredients: Recipe["ingredients"],
     newServings: number
   ) => void;
 }

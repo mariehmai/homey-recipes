@@ -1,60 +1,49 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 
-import { authenticator } from "~/utils/auth.server";
-import { db } from "~/utils/db.server";
+import {
+  getRecipeBySlug,
+  updateRecipeRating,
+} from "~/utils/recipe-storage.server";
 
+// GET /api/ratings/:slug - Get rating stats for a recipe
 export const loader: LoaderFunction = async ({ params }) => {
   const { slug } = params;
 
   if (!slug) {
-    return json({ error: "Recipe slug required" }, { status: 400 });
+    return json({ error: "Recipe slug is required" }, { status: 400 });
   }
 
   try {
-    // Get recipe by slug
-    const recipe = await db.recipe.findUnique({
-      where: { slug, deletedAt: null },
-    });
-
+    const recipe = getRecipeBySlug(slug);
     if (!recipe) {
       return json({ error: "Recipe not found" }, { status: 404 });
     }
 
-    // Get rating stats
-    const ratings = await db.recipeRating.findMany({
-      where: {
-        recipeId: recipe.id,
-        deletedAt: null,
-      },
-      select: { rating: true },
-    });
-
-    const averageRating =
-      ratings.length > 0
-        ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
-        : 0;
-
     return json({
-      averageRating,
-      ratingCount: ratings.length,
+      averageRating: recipe.averageRating || 0,
+      ratingCount: recipe.ratingCount || 0,
     });
   } catch (error) {
-    console.error("Error fetching rating stats:", error);
-    return json({ error: "Failed to fetch rating stats" }, { status: 500 });
+    console.error("Failed to get rating stats:", error);
+    return json({ error: "Failed to get rating stats" }, { status: 500 });
   }
 };
 
-export const action: ActionFunction = async ({ params, request }) => {
+// POST /api/ratings/:slug - Submit a rating for a recipe
+export const action: ActionFunction = async ({ request, params }) => {
   const { slug } = params;
 
   if (!slug) {
-    return json({ error: "Recipe slug required" }, { status: 400 });
+    return json({ error: "Recipe slug is required" }, { status: 400 });
   }
+
+  const userIp = request.headers.get("x-forwarded-for") || "anonymous";
 
   if (request.method === "POST") {
     try {
-      const { rating } = await request.json();
+      const body = await request.json();
+      const { rating } = body;
 
       if (!rating || rating < 1 || rating > 5) {
         return json(
@@ -63,102 +52,43 @@ export const action: ActionFunction = async ({ params, request }) => {
         );
       }
 
-      // Get recipe by slug
-      const recipe = await db.recipe.findUnique({
-        where: { slug, deletedAt: null },
-      });
-
+      const recipe = getRecipeBySlug(slug);
       if (!recipe) {
         return json({ error: "Recipe not found" }, { status: 404 });
       }
 
-      // Get user IP for anonymous rating tracking
-      const userIp =
-        request.headers.get("x-forwarded-for") ||
-        request.headers.get("x-real-ip") ||
-        "127.0.0.1";
+      const success = updateRecipeRating(slug, rating, userIp);
 
-      // Check if authenticated user
-      const user = await authenticator.isAuthenticated(request);
+      if (!success) {
+        return json({ error: "Failed to save rating" }, { status: 500 });
+      }
 
-      // Create or update rating
-      await db.recipeRating.upsert({
-        where: {
-          recipeId_userIp: {
-            recipeId: recipe.id,
-            userIp: userIp,
-          },
-        },
-        update: {
-          rating,
-          authorId: user?.id,
-        },
-        create: {
-          recipeId: recipe.id,
-          rating,
-          userIp,
-          authorId: user?.id,
-        },
-      });
-
-      // Get updated rating stats
-      const ratings = await db.recipeRating.findMany({
-        where: {
-          recipeId: recipe.id,
-          deletedAt: null,
-        },
-        select: { rating: true },
-      });
-
-      const averageRating =
-        ratings.length > 0
-          ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
-          : 0;
+      // Get updated recipe to return current stats
+      const updatedRecipe = getRecipeBySlug(slug);
 
       return json({
-        averageRating,
-        ratingCount: ratings.length,
+        success: true,
+        averageRating: updatedRecipe?.averageRating || 0,
+        ratingCount: updatedRecipe?.ratingCount || 0,
       });
     } catch (error) {
-      console.error("Error saving rating:", error);
-      return json({ error: "Failed to save rating" }, { status: 500 });
+      console.error("Failed to submit rating:", error);
+      return json({ error: "Failed to submit rating" }, { status: 500 });
     }
-  }
-
-  if (request.method === "DELETE") {
+  } else if (request.method === "DELETE") {
+    // Remove rating
     try {
-      // Get user IP for anonymous rating tracking
-      const userIp =
-        request.headers.get("x-forwarded-for") ||
-        request.headers.get("x-real-ip") ||
-        "127.0.0.1";
-
-      // Get recipe by slug
-      const recipe = await db.recipe.findUnique({
-        where: { slug, deletedAt: null },
-      });
-
-      if (!recipe) {
-        return json({ error: "Recipe not found" }, { status: 404 });
-      }
-
-      // Soft delete rating
-      await db.recipeRating.updateMany({
-        where: {
-          recipeId: recipe.id,
-          userIp: userIp,
-        },
-        data: {
-          deletedAt: new Date(),
-        },
-      });
-
-      return json({ success: true });
+      // TODO: Implement removeRating function in recipe-storage.server.ts
+      // For now, we'll return a not implemented error
+      return json(
+        { error: "Delete rating not yet implemented" },
+        { status: 501 }
+      );
     } catch (error) {
-      console.error("Error removing rating:", error);
-      return json({ error: "Failed to remove rating" }, { status: 500 });
+      console.error("Failed to delete rating:", error);
+      return json({ error: "Failed to delete rating" }, { status: 500 });
     }
+  } else {
+    return json({ error: "Method not allowed" }, { status: 405 });
   }
-
-  return json({ error: "Method not allowed" }, { status: 405 });
 };

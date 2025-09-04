@@ -6,8 +6,8 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import i18next from "~/i18next.server";
-import { getAllRecipes } from "~/services/recipe.server";
-import type { Recipe } from "~/services/recipe.server";
+import { getAllRecipes } from "~/utils/recipe-storage.server";
+import type { Recipe, Tag } from "~/utils/recipes";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const locale = data?.locale || "fr";
@@ -31,7 +31,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const locale = await i18next.getLocale(request);
-  const recipes = await getAllRecipes();
+  const recipes = getAllRecipes();
   return json({ recipes, locale });
 };
 
@@ -294,7 +294,10 @@ export default function Index() {
                   {category.name}
                 </h3>
                 <p className="text-xs md:text-sm text-gray-500 dark:text-stone-400 mt-1">
-                  {recipes.filter((r) => r.tags.includes(category.tag)).length}{" "}
+                  {
+                    recipes.filter((r) => r.tags.includes(category.tag as Tag))
+                      .length
+                  }{" "}
                   {t("recipes")}
                 </p>
               </a>
