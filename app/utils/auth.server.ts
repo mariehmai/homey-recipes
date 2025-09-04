@@ -1,7 +1,7 @@
 import { Authenticator } from "remix-auth";
 import { GoogleStrategy } from "remix-auth-google";
 
-import { queries, initializeDatabase } from "./db.server";
+import { db } from "./db.server";
 import { sessionStorage } from "./session.server";
 
 export interface User {
@@ -21,11 +21,6 @@ const googleStrategy = new GoogleStrategy(
     callbackURL: `${process.env.APP_URL}/auth/google/callback`,
   },
   async ({ profile }) => {
-    // Ensure database is initialized
-    if (!queries) {
-      initializeDatabase();
-    }
-
     const user = {
       id: profile.id,
       email: profile.emails[0].value,
@@ -34,19 +29,25 @@ const googleStrategy = new GoogleStrategy(
     };
 
     // Save or update user in database
-    if (queries) {
-      try {
-        queries.insertOrUpdateUser.run(
-          user.id,
-          user.email,
-          user.name,
-          null, // username - will be set in profile page
-          user.avatar
-        );
-        console.log(`✅ User ${user.email} saved to database`);
-      } catch (error) {
-        console.error("Error saving user to database:", error);
-      }
+    try {
+      await db.user.upsert({
+        where: { id: user.id },
+        create: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          username: null,
+        },
+        update: {
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+        },
+      });
+      console.log(`✅ User ${user.email} saved to database`);
+    } catch (error) {
+      console.error("Error saving user to database:", error);
     }
 
     return user;

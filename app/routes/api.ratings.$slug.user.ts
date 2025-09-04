@@ -1,29 +1,43 @@
 import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 
-import { getUserRating } from "~/utils/recipe-storage.server";
+import { db } from "~/utils/db.server";
 
-// GET /api/ratings/:slug/user - Get user's rating for a recipe
 export const loader: LoaderFunction = async ({ params, request }) => {
   const { slug } = params;
-
+  
   if (!slug) {
-    return json({ error: "Recipe slug is required" }, { status: 400 });
+    return json({ error: "Recipe slug required" }, { status: 400 });
   }
 
   try {
-    // Get user IP for simple user identification (in production, use proper user auth)
-    const userIp = request.headers.get("x-forwarded-for") || "anonymous";
+    // Get user IP for anonymous rating tracking
+    const userIp = request.headers.get("x-forwarded-for") || 
+                   request.headers.get("x-real-ip") || 
+                   "127.0.0.1";
 
-    const rating = getUserRating(slug, userIp);
+    // Get recipe by slug
+    const recipe = await db.recipe.findUnique({
+      where: { slug, deletedAt: null },
+    });
 
-    if (rating === null) {
-      return json({ error: "No rating found" }, { status: 404 });
+    if (!recipe) {
+      return json({ error: "Recipe not found" }, { status: 404 });
     }
 
-    return json({ rating });
+    // Find user's rating by IP (works for both anonymous and authenticated users)
+    const userRating = await db.recipeRating.findFirst({
+      where: {
+        recipeId: recipe.id,
+        userIp: userIp,
+        deletedAt: null,
+      },
+      select: { rating: true }
+    });
+
+    return json({ rating: userRating?.rating || null });
   } catch (error) {
-    console.error("Failed to get user rating:", error);
-    return json({ error: "Failed to get user rating" }, { status: 500 });
+    console.error("Error fetching user rating:", error);
+    return json(null, { status: 500 });
   }
 };

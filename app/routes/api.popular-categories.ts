@@ -1,13 +1,13 @@
 import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 
-import { getAllRecipes } from "~/utils/recipe-storage.server";
-import { getAllTags } from "~/utils/tag-storage.server";
+import { getAllRecipes } from "~/services/recipe.server";
+import { getAllTags } from "~/services/tag.server";
 
 export const loader: LoaderFunction = async () => {
   try {
-    const tags = getAllTags();
-    const recipes = getAllRecipes();
+    const tags = await getAllTags();
+    const recipes = await getAllRecipes();
 
     // Popular recipe categories commonly found on recipe websites
     const popularTagNames = [
@@ -27,7 +27,7 @@ export const loader: LoaderFunction = async () => {
       .filter((tag) => popularTagNames.includes(tag.name))
       .map((tag) => ({
         id: tag.name,
-        name: tag.display_name,
+        name: tag.displayName,
         count: recipes.filter((r) => r.tags.includes(tag.name)).length,
       }))
       .filter((category) => category.count > 0) // Only show categories that have recipes

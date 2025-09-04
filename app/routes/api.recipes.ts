@@ -1,11 +1,14 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 
-import { getAllRecipes, addRecipe } from "~/utils/recipe-storage.server";
-import type { Recipe } from "~/utils/recipes";
+import {
+  getAllRecipes,
+  createRecipe,
+} from "~/services/recipe.server";
+import type { CreateRecipeFormData } from "~/utils/validation.server";
 
 export const loader: LoaderFunction = async () => {
-  const recipes = getAllRecipes();
+  const recipes = await getAllRecipes();
   return json(recipes);
 };
 
@@ -14,8 +17,8 @@ export const action: ActionFunction = async ({ request }) => {
 
   switch (method) {
     case "POST": {
-      const recipe: Recipe = await request.json();
-      const newRecipe = addRecipe(recipe);
+      const recipeData: CreateRecipeFormData = await request.json();
+      const newRecipe = await createRecipe(recipeData);
       return json(newRecipe, { status: 201 });
     }
 

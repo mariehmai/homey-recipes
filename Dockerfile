@@ -18,8 +18,8 @@ FROM base AS build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3 && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+  apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python3 && \
+  apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install node modules
 COPY --link package-lock.json package.json ./
@@ -33,6 +33,9 @@ RUN npm run build
 
 # Remove development dependencies
 RUN npm prune --omit=dev
+
+# Generate Prisma client after pruning (to ensure client binaries are included)
+RUN npm run db:generate
 
 
 # Final stage for app image

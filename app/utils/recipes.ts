@@ -1,48 +1,8 @@
-export type Tag = string;
+import type { RecipeComment } from "~/services/comment.server";
+import type { Recipe } from "~/services/recipe.server";
 
-type Ingredient = {
-  unit: "n" | "g" | "kg" | "mL" | "L" | "tsp" | "tbsp" | "cup";
-  name: string;
-  quantity: string | number;
-};
-
-type Instruction = {
-  description: string;
-};
-
-type Time = {
-  min: number;
-  max?: number;
-};
-
-export type Recipe = {
-  slug: string;
-  title: string;
-  summary?: string;
-  emoji?: string;
-  time?: Time;
-  servings?: number;
-  author?: string;
-  userId?: string;
-  instructions: Instruction[];
-  ingredients: Ingredient[];
-  tags: Tag[];
-  createdAt?: string;
-  updatedAt?: string;
-  averageRating?: number;
-  ratingCount?: number;
-  commentCount?: number;
-  isDefault?: boolean;
-  isPublic?: boolean;
-};
-
-export type RecipeComment = {
-  id: number;
-  authorName: string;
-  comment: string;
-  createdAt: string;
-  userId?: string;
-};
+// Re-export types for backwards compatibility
+export type { Recipe, RecipeComment };
 
 export type RecipeRating = {
   rating: number;
@@ -54,7 +14,7 @@ export type RecipeRating = {
 export async function getAllRecipes(): Promise<Recipe[]> {
   if (typeof window === "undefined") {
     // Server-side: import from server storage
-    const { getAllRecipes } = await import("~/utils/recipe-storage.server");
+    const { getAllRecipes } = await import("~/services/recipe.server");
     return getAllRecipes();
   }
 
@@ -97,7 +57,7 @@ export async function saveCustomRecipe(recipe: Recipe): Promise<Recipe | null> {
 export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
   if (typeof window === "undefined") {
     // Server-side: import from server storage
-    const { getRecipeBySlug } = await import("~/utils/recipe-storage.server");
+    const { getRecipeBySlug } = await import("~/services/recipe.server");
     return getRecipeBySlug(slug) || null;
   }
 
@@ -124,12 +84,15 @@ export async function updateRecipe(
   if (typeof window === "undefined") return null;
 
   try {
+    // Remove id field from recipe data since we use slug for identification
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id: _, ...recipeWithoutId } = recipe;
     const response = await fetch(`/api/recipes/${slug}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(recipe),
+      body: JSON.stringify(recipeWithoutId),
     });
 
     if (!response.ok) {

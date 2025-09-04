@@ -7,11 +7,10 @@ import { FunctionComponent, useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { RatingDisplay } from "~/components/StarRating";
+import { getAllRecipes, type ClientRecipe } from "~/services/recipe.server";
+import { getAllTags, type Tag } from "~/services/tag.server";
 import { authenticator } from "~/utils/auth.server";
 import { getFavorites, toggleFavorite } from "~/utils/favorites";
-import { getAllRecipes } from "~/utils/recipe-storage.server";
-import type { Recipe, Tag } from "~/utils/recipes";
-import { getAllTags } from "~/utils/tag-storage.server";
 import { getTagColor } from "~/utils/tag-utils";
 
 export const meta: MetaFunction = () => {
@@ -20,8 +19,8 @@ export const meta: MetaFunction = () => {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await authenticator.isAuthenticated(request);
-  const recipes = getAllRecipes(user?.id);
-  const availableTags = getAllTags();
+  const recipes = await getAllRecipes(user?.id);
+  const availableTags = await getAllTags();
   return json({ recipes, availableTags, user });
 };
 
@@ -35,14 +34,8 @@ export default function Recipes() {
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [tagSearchQuery, setTagSearchQuery] = useState("");
   const { recipes, availableTags, user } = useLoaderData<{
-    recipes: Recipe[];
-    availableTags: Array<{
-      id: number;
-      name: string;
-      display_name: string;
-      is_default: boolean;
-      created_at: string;
-    }>;
+    recipes: ClientRecipe[];
+    availableTags: Tag[];
     user: { id: string; name: string; email: string; avatar: string } | null;
   }>();
 
@@ -60,11 +53,11 @@ export default function Recipes() {
     const categoryFilter = searchParams.get("category");
 
     // Helper function to filter by current category selection
-    const getCategoryFilteredRecipes = (recipes: Recipe[]) => {
+    const getCategoryFilteredRecipes = (recipes: ClientRecipe[]) => {
       if (!categoryFilter || categoryFilter === "all") {
         return recipes;
       }
-      return recipes.filter((r) => r.tags.includes(categoryFilter as Tag));
+      return recipes.filter((r) => r.tags.includes(categoryFilter));
     };
 
     // User-specific filters (counts based on current category filter)
@@ -84,7 +77,7 @@ export default function Recipes() {
       userFilters.push({
         id: "my-recipes",
         name: t("myRecipes", { defaultValue: "My Recipes" }),
-        count: categoryFilteredRecipes.filter((r) => r.userId === user.id)
+        count: categoryFilteredRecipes.filter((r) => r.authorId === user.id)
           .length,
       });
     }
@@ -103,14 +96,14 @@ export default function Recipes() {
     ];
 
     // Helper function to filter by current user filter selection
-    const getUserFilteredRecipes = (recipes: Recipe[]) => {
+    const getUserFilteredRecipes = (recipes: ClientRecipe[]) => {
       const userFilter = searchParams.get("userFilter");
       if (!userFilter) {
         return recipes;
       }
       return recipes.filter((r) => {
         if (userFilter === "favorites") return favoriteRecipes.includes(r.slug);
-        if (userFilter === "my-recipes") return user && r.userId === user.id;
+        if (userFilter === "my-recipes") return user && r.authorId === user.id;
         return true;
       });
     };
@@ -120,7 +113,7 @@ export default function Recipes() {
     const allTagCategories = availableTags
       .map((tag) => ({
         id: tag.name,
-        name: tag.display_name,
+        name: tag.displayName,
         count: userFilteredRecipes.filter((r) => r.tags.includes(tag.name))
           .length,
         isPopular: popularTagNames.includes(tag.name),
@@ -173,12 +166,12 @@ export default function Recipes() {
       const matchesCategory =
         !categoryFilter ||
         categoryFilter === "all" ||
-        recipe.tags.includes(categoryFilter as Tag);
+        recipe.tags.includes(categoryFilter);
 
       const matchesUserFilter =
         !userFilter ||
         (userFilter === "favorites" && favoriteRecipes.includes(recipe.slug)) ||
-        (userFilter === "my-recipes" && user && recipe.userId === user.id);
+        (userFilter === "my-recipes" && user && recipe.authorId === user.id);
 
       return matchesSearch && matchesCategory && matchesUserFilter;
     });
@@ -484,7 +477,7 @@ export default function Recipes() {
 }
 
 const RecipeCard: FunctionComponent<{
-  recipe: Recipe;
+  recipe: ClientRecipe;
   onRecipeClick: () => void;
   formatTime: (time?: { min: number; max?: number }) => string;
   t: TFunction<"translation", undefined>;
@@ -580,7 +573,7 @@ const RecipeCard: FunctionComponent<{
 };
 
 const RecipeListItem: FunctionComponent<{
-  recipe: Recipe;
+  recipe: ClientRecipe;
   onRecipeClick: () => void;
   formatTime: (time?: { min: number; max?: number }) => string;
   t: TFunction<"translation", undefined>;

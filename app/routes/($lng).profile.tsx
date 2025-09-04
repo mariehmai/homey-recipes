@@ -18,7 +18,7 @@ import { BackButton } from "~/components/BackButton";
 import { UserAvatar } from "~/components/UserAvatar";
 import i18next from "~/i18next.server";
 import { authenticator, User } from "~/utils/auth.server";
-import { queries, initializeDatabase } from "~/utils/db.server";
+import { db } from "~/utils/db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await authenticator.isAuthenticated(request);
@@ -30,19 +30,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return redirect(loginUrl);
   }
 
-  // Ensure database is initialized
-  if (!queries) {
-    initializeDatabase();
-  }
-
   // Get current user data with username from database
   let dbUser = null;
-  if (queries) {
-    try {
-      dbUser = queries.getUserById.get(user.id) as User;
-    } catch (error) {
-      console.error("Error fetching user from database:", error);
-    }
+  try {
+    dbUser = (await db.user.findUnique({
+      where: { id: user.id },
+    })) as User;
+  } catch (error) {
+    console.error("Error fetching user from database:", error);
   }
 
   const locale = await i18next.getLocale(request);
@@ -60,11 +55,6 @@ export const action: ActionFunction = async ({ request }) => {
 
   if (!user) {
     return json({ error: "Must be logged in" }, { status: 401 });
-  }
-
-  // Ensure database is initialized
-  if (!queries) {
-    initializeDatabase();
   }
 
   const formData = await request.formData();
@@ -92,17 +82,16 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   // Update username in database
-  if (queries) {
-    try {
-      queries.updateUserProfile.run(trimmedUsername, user.id);
-      return json({ success: "Profile updated successfully" });
-    } catch (error) {
-      console.error("Error updating user profile:", error);
-      return json({ error: "Failed to update profile" }, { status: 500 });
-    }
+  try {
+    await db.user.update({
+      where: { id: user.id },
+      data: { username: trimmedUsername },
+    });
+    return json({ success: "Profile updated successfully" });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return json({ error: "Failed to update profile" }, { status: 500 });
   }
-
-  return json({ error: "Database not available" }, { status: 500 });
 };
 
 export const meta: MetaFunction = () => {

@@ -9,3 +9,5 @@ node_modules
 /data/
 *.db
 *.sqlite
+
+/generated/prisma
