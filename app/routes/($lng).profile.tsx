@@ -18,7 +18,7 @@ import { BackButton } from "~/components/BackButton";
 import { UserAvatar } from "~/components/UserAvatar";
 import i18next from "~/i18next.server";
 import { authenticator, User } from "~/utils/auth.server";
-import { queries, initializeDatabase } from "~/utils/db.server";
+import { queries } from "~/utils/db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await authenticator.isAuthenticated(request);
@@ -28,11 +28,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const locale = await i18next.getLocale(request);
     const loginUrl = locale === "fr" ? "/login" : `/${locale}/login`;
     return redirect(loginUrl);
-  }
-
-  // Ensure database is initialized
-  if (!queries) {
-    initializeDatabase();
   }
 
   // Get current user data with username from database
@@ -60,11 +55,6 @@ export const action: ActionFunction = async ({ request }) => {
 
   if (!user) {
     return json({ error: "Must be logged in" }, { status: 401 });
-  }
-
-  // Ensure database is initialized
-  if (!queries) {
-    initializeDatabase();
   }
 
   const formData = await request.formData();

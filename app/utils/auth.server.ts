@@ -3,7 +3,7 @@ import { GoogleStrategy } from "remix-auth-google";
 
 import { UserSchema } from "~/models";
 
-import { queries, initializeDatabase } from "./db.server";
+import { queries } from "./db.server";
 import { sessionStorage } from "./session.server";
 
 export interface User {
@@ -23,11 +23,6 @@ const googleStrategy = new GoogleStrategy(
     callbackURL: `${process.env.APP_URL}/auth/google/callback`,
   },
   async ({ profile }) => {
-    // Ensure database is initialized
-    if (!queries) {
-      initializeDatabase();
-    }
-
     const user = {
       id: profile.id,
       email: profile.emails[0].value,

@@ -7,7 +7,6 @@ import {
 
 import { queries, initializeDatabase, db } from "./db.server";
 import type { Recipe, RecipeComment } from "./recipes";
-import { seedDefaultRecipes } from "./seed.server";
 import { toTitleCase } from "./stringExtensions";
 import {
   getRecipeTags,
@@ -16,16 +15,7 @@ import {
   createTag,
 } from "./tag-storage.server";
 
-// Initialize database on first import
-let isInitialized = false;
-
-function ensureInitialized() {
-  if (!isInitialized) {
-    initializeDatabase();
-    seedDefaultRecipes();
-    isInitialized = true;
-  }
-}
+initializeDatabase();
 
 interface DatabaseRow {
   slug: string;
@@ -106,8 +96,6 @@ function dbRowToRecipe(row: DatabaseRow): Recipe {
 }
 
 export function getAllRecipes(userId?: string): Recipe[] {
-  ensureInitialized();
-
   if (!queries) {
     console.error("Database not initialized");
     return [];
@@ -157,7 +145,6 @@ export function getAllRecipes(userId?: string): Recipe[] {
 }
 
 export function getRecipeBySlug(slug: string): Recipe | undefined {
-  ensureInitialized();
 
   if (!queries) {
     console.error("Database not initialized");
@@ -186,7 +173,6 @@ export function getRecipeBySlug(slug: string): Recipe | undefined {
 }
 
 export function addRecipe(recipe: Recipe): Recipe {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -244,7 +230,6 @@ export function updateRecipe(
   slug: string,
   updatedRecipe: Omit<Recipe, "slug">
 ): Recipe | null {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -301,7 +286,6 @@ export function updateRecipe(
 }
 
 export function deleteRecipe(slug: string): boolean {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -326,7 +310,6 @@ export function deleteRecipe(slug: string): boolean {
 
 // Additional utility functions for the new system
 export function getCustomRecipes(): Recipe[] {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -342,7 +325,6 @@ export function getCustomRecipes(): Recipe[] {
 }
 
 export function getDefaultRecipes(): Recipe[] {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -358,7 +340,6 @@ export function getDefaultRecipes(): Recipe[] {
 }
 
 export function getRecipeStats() {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -385,7 +366,6 @@ export function getUserRating(
   recipeSlug: string,
   userIp: string
 ): number | null {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -407,7 +387,6 @@ export function addOrUpdateRating(
   rating: number,
   userIp: string
 ): boolean {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -434,7 +413,6 @@ export function addOrUpdateRating(
 // Comment functions
 
 export function getRecipeComments(recipeSlug: string): RecipeComment[] {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -469,7 +447,6 @@ export function addComment(
   userIp: string,
   userId?: string
 ): boolean {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -502,7 +479,6 @@ export function updateComment(
   newComment: string,
   userId: string
 ): boolean {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");
@@ -519,7 +495,6 @@ export function updateComment(
 
 // Get latest recipes (newest first)
 export function getLatestRecipes(limit: number = 10): Recipe[] {
-  ensureInitialized();
 
   if (!queries) {
     console.error("Database not initialized");
@@ -553,7 +528,6 @@ export function getTrendyRecipes(
   limit: number = 10,
   minRatings: number = 3
 ): Recipe[] {
-  ensureInitialized();
 
   if (!queries) {
     console.error("Database not initialized");
@@ -588,7 +562,6 @@ export function updateRecipeRating(
   rating: number,
   userIp?: string
 ): boolean {
-  ensureInitialized();
 
   if (!queries) {
     throw new Error("Database not initialized");

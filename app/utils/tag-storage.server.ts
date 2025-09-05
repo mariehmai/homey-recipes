@@ -1,15 +1,6 @@
 import { TagSchema } from "~/models";
 
-import { queries, initializeDatabase } from "./db.server";
-
-let isInitialized = false;
-
-function ensureInitialized() {
-  if (!isInitialized) {
-    initializeDatabase();
-    isInitialized = true;
-  }
-}
+import { queries } from "./db.server";
 
 export interface Tag {
   id: number;
@@ -20,8 +11,6 @@ export interface Tag {
 }
 
 export function getAllTags(): Tag[] {
-  ensureInitialized();
-
   if (!queries) {
     console.error("Database not initialized");
     return [];
@@ -37,8 +26,6 @@ export function getAllTags(): Tag[] {
 }
 
 export function getRecipeTags(recipeSlug: string): Tag[] {
-  ensureInitialized();
-
   if (!queries) {
     console.error("Database not initialized");
     return [];
@@ -54,8 +41,6 @@ export function getRecipeTags(recipeSlug: string): Tag[] {
 }
 
 export function createTag(name: string, displayName?: string): Tag | null {
-  ensureInitialized();
-
   if (!queries) {
     throw new Error("Database not initialized");
   }
@@ -95,8 +80,6 @@ export function createTag(name: string, displayName?: string): Tag | null {
 }
 
 export function findOrCreateTag(name: string): Tag | null {
-  ensureInitialized();
-
   // Always normalize tag name to lowercase
   const normalizedName = name.toLowerCase().trim();
 
@@ -113,8 +96,6 @@ export function findOrCreateTag(name: string): Tag | null {
 }
 
 export function setRecipeTags(recipeSlug: string, tagIds: number[]): boolean {
-  ensureInitialized();
-
   if (!queries) {
     throw new Error("Database not initialized");
   }

@@ -3,24 +3,24 @@ import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 
+import { seedDefaultRecipes } from "./seed.server";
+
 const dbPath =
   process.env.NODE_ENV === "production"
     ? path.join("/data", "papilles_et_mami.db")
     : path.join(process.cwd(), "data", "papilles_et_mami.db");
 const dataDir = path.dirname(dbPath);
 
-// Ensure data directory exists
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
 export const db = new Database(dbPath);
-
-// Enable foreign keys and WAL mode for better performance
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = 1");
 
-// Database schema
+let isInitialized = false;
+
 const SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
@@ -42,9 +42,9 @@ const SCHEMA = `
     servings INTEGER,
     author TEXT DEFAULT 'Anonymous',
     user_id TEXT,
-    tags TEXT, -- JSON array
-    ingredients TEXT NOT NULL, -- JSON array
-    instructions TEXT NOT NULL, -- JSON array
+    tags TEXT,
+    ingredients TEXT NOT NULL,
+    instructions TEXT NOT NULL,
     is_default BOOLEAN DEFAULT 0,
     is_public BOOLEAN DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -59,7 +59,7 @@ const SCHEMA = `
     user_ip TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (recipe_slug) REFERENCES recipes(slug) ON DELETE CASCADE,
-    UNIQUE(recipe_slug, user_ip) -- One rating per IP per recipe
+    UNIQUE(recipe_slug, user_ip)
   );
 
   CREATE TABLE IF NOT EXISTS recipe_comments (
@@ -90,26 +90,17 @@ const SCHEMA = `
   );
 
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-  
   CREATE INDEX IF NOT EXISTS idx_recipes_slug ON recipes(slug);
-  CREATE INDEX IF NOT EXISTS idx_recipes_tags ON recipes(tags);
   CREATE INDEX IF NOT EXISTS idx_recipes_is_default ON recipes(is_default);
-  CREATE INDEX IF NOT EXISTS idx_recipes_author ON recipes(author);
   CREATE INDEX IF NOT EXISTS idx_recipes_user_id ON recipes(user_id);
   CREATE INDEX IF NOT EXISTS idx_recipes_created_at ON recipes(created_at);
-  
   CREATE INDEX IF NOT EXISTS idx_recipe_ratings_slug ON recipe_ratings(recipe_slug);
-  CREATE INDEX IF NOT EXISTS idx_recipe_ratings_created_at ON recipe_ratings(created_at);
-  
   CREATE INDEX IF NOT EXISTS idx_recipe_comments_slug ON recipe_comments(recipe_slug);
-  CREATE INDEX IF NOT EXISTS idx_recipe_comments_created_at ON recipe_comments(created_at);
-
   CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
   CREATE INDEX IF NOT EXISTS idx_tags_is_default ON tags(is_default);
   CREATE INDEX IF NOT EXISTS idx_recipe_tags_recipe ON recipe_tags(recipe_slug);
   CREATE INDEX IF NOT EXISTS idx_recipe_tags_tag ON recipe_tags(tag_id);
 
-  -- Trigger to update updated_at timestamp
   CREATE TRIGGER IF NOT EXISTS update_recipes_updated_at
     AFTER UPDATE ON recipes
     FOR EACH ROW
@@ -119,20 +110,21 @@ const SCHEMA = `
 `;
 
 export function initializeDatabase() {
-  console.log(`Initializing database at: ${dbPath}`);
+  if (isInitialized) return true;
+
+  console.log(`🗄️ Initializing database at: ${dbPath}`);
 
   try {
-    // First, run migrations for existing databases
-    runMigrations();
-
-    // Create schema (will create new tables if they don't exist)
     db.exec(SCHEMA);
-    console.log("✅ Database schema created/updated");
+    console.log("✅ Database schema created");
 
-    // Initialize queries after schema is created
     initializeQueries();
     console.log("✅ Database queries prepared");
 
+    seedDefaultRecipes();
+    console.log("✅ Default recipes seeded");
+
+    isInitialized = true;
     return true;
   } catch (error) {
     console.error("❌ Database initialization failed:", error);
@@ -140,129 +132,6 @@ export function initializeDatabase() {
   }
 }
 
-function runMigrations() {
-  console.log("🔄 Running database migrations...");
-
-  try {
-    // Check if recipes table exists
-    const tableExists = db
-      .prepare(
-        `
-      SELECT name FROM sqlite_master 
-      WHERE type='table' AND name='recipes'
-    `
-      )
-      .get();
-
-    if (tableExists) {
-      console.log("📝 Recipes table exists, checking for migrations...");
-
-      // Check if columns exist
-      const columns = db.prepare(`PRAGMA table_info(recipes)`).all() as Array<{
-        name: string;
-      }>;
-      const hasAuthor = columns.some((col) => col.name === "author");
-      const hasEmoji = columns.some((col) => col.name === "emoji");
-      const hasUserId = columns.some((col) => col.name === "user_id");
-
-      if (!hasAuthor) {
-        console.log("📝 Adding author column to existing recipes table...");
-        db.exec("ALTER TABLE recipes ADD COLUMN author TEXT DEFAULT 'Chef'");
-        console.log("✅ Author column added");
-      }
-
-      if (!hasEmoji) {
-        console.log("📝 Adding emoji column to existing recipes table...");
-        db.exec("ALTER TABLE recipes ADD COLUMN emoji TEXT");
-        console.log("✅ Emoji column added");
-      }
-
-      if (!hasUserId) {
-        console.log("📝 Adding user_id column to existing recipes table...");
-        db.exec("ALTER TABLE recipes ADD COLUMN user_id TEXT");
-        console.log("✅ user_id column added");
-      }
-
-      const hasIsPublic = columns.some((col) => col.name === "is_public");
-      if (!hasIsPublic) {
-        console.log("📝 Adding is_public column to existing recipes table...");
-        db.exec("ALTER TABLE recipes ADD COLUMN is_public BOOLEAN DEFAULT 1");
-        console.log("✅ is_public column added");
-      }
-    }
-
-    // Check if users table exists and add username column if needed
-    const usersTableExists = db
-      .prepare(
-        `
-      SELECT name FROM sqlite_master 
-      WHERE type='table' AND name='users'
-    `
-      )
-      .get();
-
-    if (usersTableExists) {
-      const userColumns = db
-        .prepare(`PRAGMA table_info(users)`)
-        .all() as Array<{
-        name: string;
-      }>;
-      const hasUsername = userColumns.some((col) => col.name === "username");
-
-      if (!hasUsername) {
-        console.log("📝 Adding username column to existing users table...");
-        db.exec("ALTER TABLE users ADD COLUMN username TEXT");
-        console.log("✅ username column added");
-      }
-    }
-
-    // Check for comments table migrations
-    const commentsTableExists = db
-      .prepare(
-        `
-      SELECT name FROM sqlite_master 
-      WHERE type='table' AND name='recipe_comments'
-    `
-      )
-      .get();
-
-    if (commentsTableExists) {
-      const commentColumns = db
-        .prepare(`PRAGMA table_info(recipe_comments)`)
-        .all() as Array<{
-        name: string;
-      }>;
-      const hasUserId = commentColumns.some((col) => col.name === "user_id");
-
-      if (!hasUserId) {
-        console.log(
-          "📝 Adding user_id column to existing recipe_comments table..."
-        );
-        db.exec("ALTER TABLE recipe_comments ADD COLUMN user_id TEXT");
-        console.log("✅ user_id column added to recipe_comments");
-      }
-
-      // Update existing records that might have NULL or empty author
-      const updateResult = db
-        .prepare(
-          "UPDATE recipes SET author = 'Chef' WHERE author IS NULL OR author = ''"
-        )
-        .run();
-      if (updateResult.changes > 0) {
-        console.log(
-          `✅ Updated ${updateResult.changes} recipes with default author`
-        );
-      }
-    }
-
-    console.log("✅ Database migrations completed");
-  } catch (error) {
-    console.error("❌ Migration failed:", error);
-    // Don't throw here, let the schema creation handle it
-  }
-}
-
-// Prepared statements - will be initialized after schema creation
 type QueriesType = {
   getAllRecipes: Database.Statement<unknown[], unknown>;
   getRecipeBySlug: Database.Statement<[string], unknown>;
