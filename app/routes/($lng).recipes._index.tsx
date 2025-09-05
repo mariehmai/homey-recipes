@@ -223,85 +223,77 @@ export default function Recipes() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-stone-900">
       <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6">
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <div className="flex items-center space-x-3 md:space-x-4">
-              <div className="w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center">
-                <span className="text-white text-lg md:text-xl lg:text-2xl">
-                  🍳
-                </span>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-3 md:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  🔍
+                </div>
+                <input
+                  type="text"
+                  placeholder={t("search")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm transition-all"
+                />
               </div>
-              <div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
-                  {t("recipesPageTitle")}
-                </h1>
-                <p className="text-sm md:text-base text-gray-600 dark:text-stone-300">
-                  {t("recipesPageDescription")}
-                </p>
+
+              <div className="flex bg-gray-100 dark:bg-stone-700 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={clsx(
+                    "p-2 rounded-md transition-all",
+                    viewMode === "grid"
+                      ? "bg-white dark:bg-stone-600 shadow-sm"
+                      : "text-gray-500 dark:text-stone-300 hover:text-gray-700 dark:hover:text-stone-200"
+                  )}
+                >
+                  <span className="text-sm">⊞</span>
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={clsx(
+                    "p-2 rounded-md transition-all",
+                    viewMode === "list"
+                      ? "bg-white dark:bg-stone-600 shadow-sm"
+                      : "text-gray-500 dark:text-stone-300 hover:text-gray-700 dark:hover:text-stone-200"
+                  )}
+                >
+                  <span className="text-sm">☰</span>
+                </button>
               </div>
             </div>
 
             {user && (
               <a
                 href="/recipes/new"
-                className="flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm md:text-base"
+                className="flex items-center justify-center space-x-2 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm sm:ml-auto"
               >
-                <span className="text-lg">➕</span>
-                <span className="hidden sm:inline">{t("addNewRecipe")}</span>
+                <span className="text-sm">➕</span>
+                <span>{t("addNewRecipe")}</span>
               </a>
             )}
           </div>
 
-          <div className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-6">
-            <div className="flex-1 relative max-w-md">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                🔍
-              </div>
-              <input
-                type="text"
-                placeholder={t("search")}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 md:py-3 border border-gray-300 dark:border-stone-600 rounded-lg bg-white dark:bg-stone-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm md:text-base transition-all"
-              />
-            </div>
-
-            <div className="flex bg-gray-100 dark:bg-stone-700 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={clsx(
-                  "p-2 md:p-3 rounded-md transition-all hover:scale-105",
-                  viewMode === "grid"
-                    ? "bg-white dark:bg-stone-600 shadow-sm"
-                    : "text-gray-500 dark:text-stone-300 hover:text-gray-700 dark:hover:text-stone-200"
-                )}
-              >
-                <span className="text-base md:text-lg">⊞</span>
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={clsx(
-                  "p-2 md:p-3 rounded-md transition-all hover:scale-105",
-                  viewMode === "list"
-                    ? "bg-white dark:bg-stone-600 shadow-sm"
-                    : "text-gray-500 dark:text-stone-300 hover:text-gray-700 dark:hover:text-stone-200"
-                )}
-              >
-                <span className="text-base md:text-lg">☰</span>
-              </button>
-            </div>
-          </div>
-
-          {/* User Filters Section */}
-          {userFilters.some((filter) => filter.count > 0) && (
-            <>
-              <div className="flex items-center justify-between mb-2 md:mb-3">
-                <h2 className="font-bold text-gray-900 dark:text-white text-sm md:text-base">
-                  {t("myFilters", { defaultValue: "My Filters" })}:
+          {/* Compact Filters Section */}
+          <div className="mb-3 md:mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-4">
+                <h2 className="font-medium text-gray-900 dark:text-white text-sm">
+                  {t("filters", { defaultValue: "Filters" })}
                 </h2>
+                <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-stone-300">
+                  <span>🔍</span>
+                  <span>
+                    {filteredRecipes.length} {t("recipesCount")}
+                  </span>
+                </div>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide mb-4 md:mb-6">
+            {userFilters.some((filter) => filter.count > 0) && (
+              <div className="flex items-center gap-2 mb-2 overflow-x-auto scrollbar-hide">
                 {userFilters
                   .filter((filter) => filter.count > 0)
                   .map((filter) => (
@@ -309,119 +301,85 @@ export default function Recipes() {
                       key={filter.id}
                       onClick={() => selectUserFilter(filter.id)}
                       className={clsx(
-                        "cursor-pointer flex-shrink-0 px-3 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105",
+                        "cursor-pointer flex-shrink-0 px-2 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                         selectedUserFilter === filter.id
                           ? "bg-blue-500 text-white shadow-sm"
                           : "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800"
                       )}
                     >
-                      {filter.name}
-                      <span className="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-black/10">
-                        {filter.count}
-                      </span>
+                      {filter.name} ({filter.count})
                     </button>
                   ))}
               </div>
-            </>
-          )}
-
-          {/* Category Filters Section */}
-          <div className="flex items-center justify-between mb-3 md:mb-4">
-            <h2 className="font-bold text-gray-900 dark:text-white text-sm md:text-base">
-              {t("categoryFilter")}:
-            </h2>
-            <div className="flex items-center space-x-1 text-sm md:text-base text-gray-500 dark:text-stone-300">
-              <span>🔍</span>
-              <span>
-                {filteredRecipes.length} {t("recipesCount")}
-              </span>
-            </div>
+            )}
           </div>
 
-          <div className="flex items-center lg:grid lg:grid-cols-6 gap-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-hide">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => selectCategory("all")}
               className={clsx(
-                "flex-shrink-0 lg:flex-shrink px-3 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105",
+                "flex-shrink-0 px-2 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                 selectedCategory === "all"
                   ? "bg-orange-500 text-white shadow-sm"
                   : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
               )}
             >
-              {t("all")}
-              <span className="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-black/10">
-                {recipes.length}
-              </span>
+              {t("all")} ({recipes.length})
             </button>
 
-            {/* Main popular categories */}
             {mainCategories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => selectCategory(category.id)}
                 className={clsx(
-                  "cursor-pointer flex-shrink-0 lg:flex-shrink px-3 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105",
+                  "cursor-pointer flex-shrink-0 px-2 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
                   selectedCategory === category.id
                     ? "bg-orange-500 text-white shadow-sm"
                     : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
                 )}
               >
-                {category.name}
-                <span className="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-black/10">
-                  {category.count}
-                </span>
+                {category.name} ({category.count})
               </button>
             ))}
 
-            {/* Show More button if there are additional categories */}
             {additionalCategories.length > 0 && (
-              <>
-                <button
-                  onClick={() => setShowAllCategories(!showAllCategories)}
-                  className="cursor-pointer flex-shrink-0 px-3 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105 bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 border border-stone-300 dark:border-stone-600"
-                >
-                  {showAllCategories
-                    ? t("showLess")
-                    : `${t("showMore")} (${additionalCategories.length})`}
-                </button>
-
-                {/* Collapsible additional categories */}
-                {showAllCategories && (
-                  <div className="flex flex-wrap gap-2 md:gap-3 w-full">
-                    {/* Search input for tags */}
-                    <div className="w-full mb-2">
-                      <input
-                        type="text"
-                        placeholder={t("search")}
-                        value={tagSearchQuery}
-                        onChange={(e) => setTagSearchQuery(e.target.value)}
-                        className="w-full max-w-xs px-3 py-2 text-sm border border-stone-200 dark:border-stone-600 rounded-full bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    {/* Filtered additional categories */}
-                    {filteredAdditionalCategories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => selectCategory(category.id)}
-                        className={clsx(
-                          "cursor-pointer flex-shrink-0 lg:flex-shrink px-3 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap hover:scale-105",
-                          selectedCategory === category.id
-                            ? "bg-orange-500 text-white shadow-sm"
-                            : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
-                        )}
-                      >
-                        {category.name}
-                        <span className="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-black/10">
-                          {category.count}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </>
+              <button
+                onClick={() => setShowAllCategories(!showAllCategories)}
+                className="cursor-pointer flex-shrink-0 px-2 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 border border-stone-300 dark:border-stone-600"
+              >
+                {showAllCategories ? "−" : "+"} {additionalCategories.length}
+              </button>
             )}
           </div>
+          {showAllCategories && additionalCategories.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-gray-200 dark:border-stone-700">
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder={t("search")}
+                  value={tagSearchQuery}
+                  onChange={(e) => setTagSearchQuery(e.target.value)}
+                  className="flex-1 max-w-xs px-2 py-1 text-xs border border-stone-200 dark:border-stone-600 rounded-full bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder-stone-500 dark:placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                />
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {filteredAdditionalCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => selectCategory(category.id)}
+                    className={clsx(
+                      "cursor-pointer px-2 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap",
+                      selectedCategory === category.id
+                        ? "bg-orange-500 text-white shadow-sm"
+                        : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
+                    )}
+                  >
+                    {category.name} ({category.count})
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
