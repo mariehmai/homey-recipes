@@ -21,6 +21,6 @@ source = 'papilles_et_mami_data'
 destination = '/data'
 
 [[vm]]
-memory = '256mb'
+memory = '512mb'
 cpu_kind = 'shared'
 cpus = 1
