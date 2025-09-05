@@ -33,6 +33,11 @@ import { useTranslation } from "react-i18next";
 
 import { BackButton } from "~/components/BackButton";
 import i18next from "~/i18next.server";
+import {
+  RecipeInputSchema,
+  IngredientSchema,
+  InstructionSchema,
+} from "~/models";
 import { authenticator } from "~/utils/auth.server";
 import { buildI18nUrl } from "~/utils/i18n-redirect";
 import { addRecipe } from "~/utils/recipe-storage.server";
@@ -118,11 +123,25 @@ export const action: ActionFunction = async ({ request }) => {
     const unit = ingredientUnits[i] as string;
 
     if (name && quantity) {
-      ingredients.push({
+      const ingredient = {
         name: name.trim(),
         quantity: quantity.trim(),
         unit: unit as Recipe["ingredients"][0]["unit"],
-      });
+      };
+
+      const ingredientValidation = IngredientSchema.safeParse(ingredient);
+      if (!ingredientValidation.success) {
+        return Response.json(
+          {
+            error: "invalidIngredient",
+            details: ingredientValidation.error.format(),
+            ingredientIndex: i,
+          },
+          { status: 400 }
+        );
+      }
+
+      ingredients.push(ingredient);
     }
   }
 
@@ -130,38 +149,38 @@ export const action: ActionFunction = async ({ request }) => {
   const instructions = [];
   const instructionDescriptions = formData.getAll("instructionDescription");
 
-  for (const description of instructionDescriptions) {
-    const desc = description as string;
+  for (let i = 0; i < instructionDescriptions.length; i++) {
+    const desc = instructionDescriptions[i] as string;
     if (desc.trim()) {
-      instructions.push({
+      const instruction = {
         description: desc.trim(),
-      });
+      };
+
+      const instructionValidation = InstructionSchema.safeParse(instruction);
+      if (!instructionValidation.success) {
+        return Response.json(
+          {
+            error: "invalidInstruction",
+            details: instructionValidation.error.format(),
+            instructionIndex: i,
+          },
+          { status: 400 }
+        );
+      }
+
+      instructions.push(instruction);
     }
   }
 
-  // Validation
-  if (
-    !title ||
-    !prepTime ||
-    ingredients.length === 0 ||
-    instructions.length === 0
-  ) {
-    return Response.json(
-      { error: "fillAllRequiredFields" }, // Will be translated on frontend
-      { status: 400 }
-    );
-  }
-
-  // Create new recipe
-  const newRecipe: Recipe = {
-    slug: generateSlug(title),
+  // Create new recipe data object
+  const newRecipeData = {
     title: title.trim(),
-    summary: summary.trim(),
+    summary: summary.trim() || undefined,
     emoji: emoji?.trim() || undefined,
     author: user?.name || author?.trim() || "Anonymous",
     userId: user?.id,
     time: {
-      min: parseInt(prepTime),
+      min: parseInt(prepTime || "0"),
       max: cookTime ? parseInt(cookTime) : undefined,
     },
     servings: servings ? parseInt(servings) : undefined,
@@ -169,6 +188,23 @@ export const action: ActionFunction = async ({ request }) => {
     instructions,
     tags: tags as Tag[],
     isPublic,
+  };
+
+  const recipeValidation = RecipeInputSchema.safeParse(newRecipeData);
+  if (!recipeValidation.success) {
+    return Response.json(
+      {
+        error: "invalidRecipeData",
+        details: recipeValidation.error.format(),
+      },
+      { status: 400 }
+    );
+  }
+
+  // Create new recipe with generated slug
+  const newRecipe: Recipe = {
+    ...recipeValidation.data,
+    slug: generateSlug(title),
   };
 
   // Save to server storage

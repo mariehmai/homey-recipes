@@ -1,6 +1,8 @@
 import { Authenticator } from "remix-auth";
 import { GoogleStrategy } from "remix-auth-google";
 
+import { UserSchema } from "~/models";
+
 import { queries, initializeDatabase } from "./db.server";
 import { sessionStorage } from "./session.server";
 
@@ -32,6 +34,15 @@ const googleStrategy = new GoogleStrategy(
       name: profile.displayName,
       avatar: profile.photos[0].value,
     };
+
+    const validation = UserSchema.safeParse(user);
+    if (!validation.success) {
+      throw new Error(
+        `Invalid user data from Google: ${JSON.stringify(
+          validation.error.format()
+        )}`
+      );
+    }
 
     // Save or update user in database
     if (queries) {

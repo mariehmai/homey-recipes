@@ -1,6 +1,7 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 
+import { RatingSchema } from "~/models";
 import {
   getRecipeBySlug,
   updateRecipeRating,
@@ -43,14 +44,16 @@ export const action: ActionFunction = async ({ request, params }) => {
   if (request.method === "POST") {
     try {
       const body = await request.json();
-      const { rating } = body;
+      const validation = RatingSchema.safeParse(body);
 
-      if (!rating || rating < 1 || rating > 5) {
+      if (!validation.success) {
         return json(
-          { error: "Rating must be between 1 and 5" },
+          { error: "Invalid rating data", details: validation.error.format() },
           { status: 400 }
         );
       }
+
+      const { rating } = validation.data;
 
       const recipe = getRecipeBySlug(slug);
       if (!recipe) {

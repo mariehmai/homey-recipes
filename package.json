@@ -35,7 +35,8 @@
     "react-i18next": "^15.0.3",
     "remix-auth": "^3.7.0",
     "remix-auth-google": "^2.0.0",
-    "remix-i18next": "^6.4.1"
+    "remix-i18next": "^6.4.1",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.2",

@@ -1,3 +1,10 @@
+import {
+  CommentSchema,
+  RatingSchema,
+  RecipeSchema,
+  RecipeInputSchema,
+} from "~/models";
+
 import { queries, initializeDatabase, db } from "./db.server";
 import type { Recipe, RecipeComment } from "./recipes";
 import { seedDefaultRecipes } from "./seed.server";
@@ -185,6 +192,13 @@ export function addRecipe(recipe: Recipe): Recipe {
     throw new Error("Database not initialized");
   }
 
+  const validation = RecipeSchema.safeParse(recipe);
+  if (!validation.success) {
+    throw new Error(
+      `Invalid recipe data: ${JSON.stringify(validation.error.format())}`
+    );
+  }
+
   try {
     // Check if slug already exists and modify if needed
     let uniqueSlug = recipe.slug;
@@ -234,6 +248,13 @@ export function updateRecipe(
 
   if (!queries) {
     throw new Error("Database not initialized");
+  }
+
+  const validation = RecipeInputSchema.safeParse(updatedRecipe);
+  if (!validation.success) {
+    throw new Error(
+      `Invalid recipe update data: ${JSON.stringify(validation.error.format())}`
+    );
   }
 
   try {
@@ -454,6 +475,13 @@ export function addComment(
     throw new Error("Database not initialized");
   }
 
+  const validation = CommentSchema.safeParse({ authorName, comment });
+  if (!validation.success) {
+    throw new Error(
+      `Invalid comment data: ${JSON.stringify(validation.error.format())}`
+    );
+  }
+
   try {
     const result = queries.insertComment.run(
       recipeSlug,
@@ -564,6 +592,13 @@ export function updateRecipeRating(
 
   if (!queries) {
     throw new Error("Database not initialized");
+  }
+
+  const validation = RatingSchema.safeParse({ rating });
+  if (!validation.success) {
+    throw new Error(
+      `Invalid rating data: ${JSON.stringify(validation.error.format())}`
+    );
   }
 
   try {

@@ -1,3 +1,5 @@
+import { TagSchema } from "~/models";
+
 import { queries, initializeDatabase } from "./db.server";
 
 let isInitialized = false;
@@ -58,12 +60,23 @@ export function createTag(name: string, displayName?: string): Tag | null {
     throw new Error("Database not initialized");
   }
 
-  try {
-    // Always lowercase the tag name for consistency
-    const normalizedName = name.toLowerCase().trim();
-    // Use provided displayName or create one from normalized name
-    const finalDisplayName = displayName || normalizedName;
+  // Always lowercase the tag name for consistency
+  const normalizedName = name.toLowerCase().trim();
+  // Use provided displayName or create one from normalized name
+  const finalDisplayName = displayName || normalizedName;
 
+  const validation = TagSchema.safeParse({
+    name: normalizedName,
+    displayName: finalDisplayName,
+    isDefault: false,
+  });
+  if (!validation.success) {
+    throw new Error(
+      `Invalid tag data: ${JSON.stringify(validation.error.format())}`
+    );
+  }
+
+  try {
     const result = queries.insertTag.run(normalizedName, finalDisplayName, 0); // is_default = false (custom tag)
 
     if (result.lastInsertRowid) {

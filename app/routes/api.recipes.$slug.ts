@@ -1,6 +1,7 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 
+import { RecipeInputSchema } from "~/models";
 import {
   getRecipeBySlug,
   updateRecipe,
@@ -34,14 +35,31 @@ export const action: ActionFunction = async ({ request, params }) => {
 
   switch (method) {
     case "PUT": {
-      const updatedRecipeData: Omit<Recipe, "slug"> = await request.json();
-      const updatedRecipe = updateRecipe(slug, updatedRecipeData);
+      try {
+        const rawData = await request.json();
+        const validation = RecipeInputSchema.safeParse(rawData);
 
-      if (!updatedRecipe) {
-        return json({ error: "Recipe not found" }, { status: 404 });
+        if (!validation.success) {
+          return json(
+            {
+              error: "Invalid recipe data",
+              details: validation.error.format(),
+            },
+            { status: 400 }
+          );
+        }
+
+        const updatedRecipeData = validation.data as Omit<Recipe, "slug">;
+        const updatedRecipe = updateRecipe(slug, updatedRecipeData);
+
+        if (!updatedRecipe) {
+          return json({ error: "Recipe not found" }, { status: 404 });
+        }
+
+        return json(updatedRecipe);
+      } catch (error) {
+        return json({ error: "Invalid JSON data" }, { status: 400 });
       }
-
-      return json(updatedRecipe);
     }
 
     case "DELETE": {

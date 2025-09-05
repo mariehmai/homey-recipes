@@ -1,6 +1,7 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 
+import { RecipeInputSchema } from "~/models";
 import { getAllRecipes, addRecipe } from "~/utils/recipe-storage.server";
 import type { Recipe } from "~/utils/recipes";
 
@@ -14,9 +15,26 @@ export const action: ActionFunction = async ({ request }) => {
 
   switch (method) {
     case "POST": {
-      const recipe: Recipe = await request.json();
-      const newRecipe = addRecipe(recipe);
-      return json(newRecipe, { status: 201 });
+      try {
+        const rawData = await request.json();
+        const validation = RecipeInputSchema.safeParse(rawData);
+
+        if (!validation.success) {
+          return json(
+            {
+              error: "Invalid recipe data",
+              details: validation.error.format(),
+            },
+            { status: 400 }
+          );
+        }
+
+        const recipe = validation.data as Recipe;
+        const newRecipe = addRecipe(recipe);
+        return json(newRecipe, { status: 201 });
+      } catch (error) {
+        return json({ error: "Invalid JSON data" }, { status: 400 });
+      }
     }
 
     default:
