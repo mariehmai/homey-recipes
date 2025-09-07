@@ -18,7 +18,7 @@ FROM base AS build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3 && \
+    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3 openssl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install node modules
@@ -31,8 +31,7 @@ COPY --link . .
 # Set DATABASE_URL for Prisma
 ENV DATABASE_URL="file:/data/papilles_et_mami.db"
 
-# Run Prisma migrations and generate client
-RUN npx prisma migrate deploy
+# Generate Prisma client
 RUN npm run db:generate
 
 # Build application
@@ -44,6 +43,11 @@ RUN npm prune --omit=dev
 
 # Final stage for app image
 FROM base
+
+# Install OpenSSL for Prisma
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y openssl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy built application
 COPY --from=build /app /app
