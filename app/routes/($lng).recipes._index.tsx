@@ -20,8 +20,8 @@ export const meta: MetaFunction = () => {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await authenticator.isAuthenticated(request);
-  const recipes = getAllRecipes(user?.id);
-  const availableTags = getAllTags();
+  const recipes = await getAllRecipes(user?.id);
+  const availableTags = await getAllTags();
   return json({ recipes, availableTags, user });
 };
 

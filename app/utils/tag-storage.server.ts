@@ -1,6 +1,6 @@
 import { TagSchema } from "~/models";
 
-import { queries } from "./db.server";
+import { db } from "./db.server";
 
 export interface Tag {
   id: number;
@@ -10,41 +10,56 @@ export interface Tag {
   created_at: string;
 }
 
-export function getAllTags(): Tag[] {
-  if (!queries) {
-    console.error("Database not initialized");
-    return [];
-  }
-
+export async function getAllTags(): Promise<Tag[]> {
   try {
-    const rows = queries.getAllTags.all() as Tag[];
-    return rows;
+    const tags = await db.tag.findMany({
+      orderBy: [{ isDefault: "desc" }, { name: "asc" }],
+    });
+
+    return tags.map((tag) => ({
+      id: tag.id,
+      name: tag.name,
+      display_name: tag.displayName,
+      is_default: tag.isDefault,
+      created_at: tag.createdAt.toISOString(),
+    }));
   } catch (error) {
     console.error("Error fetching tags:", error);
     return [];
   }
 }
 
-export function getRecipeTags(recipeSlug: string): Tag[] {
-  if (!queries) {
-    console.error("Database not initialized");
-    return [];
-  }
-
+export async function getRecipeTags(recipeSlug: string): Promise<Tag[]> {
   try {
-    const rows = queries.getRecipeTags.all(recipeSlug) as Tag[];
-    return rows;
+    const recipeTags = await db.recipeTag.findMany({
+      where: { recipeSlug },
+      include: {
+        tag: true,
+      },
+      orderBy: {
+        tag: {
+          name: "asc",
+        },
+      },
+    });
+
+    return recipeTags.map((rt) => ({
+      id: rt.tag.id,
+      name: rt.tag.name,
+      display_name: rt.tag.displayName,
+      is_default: rt.tag.isDefault,
+      created_at: rt.tag.createdAt.toISOString(),
+    }));
   } catch (error) {
     console.error(`Error fetching tags for recipe ${recipeSlug}:`, error);
     return [];
   }
 }
 
-export function createTag(name: string, displayName?: string): Tag | null {
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+export async function createTag(
+  name: string,
+  displayName?: string
+): Promise<Tag | null> {
   // Always lowercase the tag name for consistency
   const normalizedName = name.toLowerCase().trim();
   // Use provided displayName or create one from normalized name
@@ -57,56 +72,78 @@ export function createTag(name: string, displayName?: string): Tag | null {
   });
   if (!validation.success) {
     throw new Error(
-      `Invalid tag data: ${JSON.stringify(validation.error.format())}`
+      `Invalid tag data: ${JSON.stringify(validation.error.flatten())}`
     );
   }
 
   try {
-    const result = queries.insertTag.run(normalizedName, finalDisplayName, 0); // is_default = false (custom tag)
+    const tag = await db.tag.create({
+      data: {
+        name: normalizedName,
+        displayName: finalDisplayName,
+        isDefault: false,
+      },
+    });
 
-    if (result.lastInsertRowid) {
-      const allTags = getAllTags();
-      const newTag = allTags.find(
-        (t) => t.id === Number(result.lastInsertRowid)
-      );
-      return newTag || null;
-    }
-
-    return null;
+    return {
+      id: tag.id,
+      name: tag.name,
+      display_name: tag.displayName,
+      is_default: tag.isDefault,
+      created_at: tag.createdAt.toISOString(),
+    };
   } catch (error) {
     console.error("Error creating tag:", error);
     return null;
   }
 }
 
-export function findOrCreateTag(name: string): Tag | null {
+export async function findOrCreateTag(name: string): Promise<Tag | null> {
   // Always normalize tag name to lowercase
   const normalizedName = name.toLowerCase().trim();
 
-  // Check if tag already exists
-  const existingTags = getAllTags();
-  const existingTag = existingTags.find((tag) => tag.name === normalizedName);
+  try {
+    // Check if tag already exists
+    const existingTag = await db.tag.findUnique({
+      where: { name: normalizedName },
+    });
 
-  if (existingTag) {
-    return existingTag;
+    if (existingTag) {
+      return {
+        id: existingTag.id,
+        name: existingTag.name,
+        display_name: existingTag.displayName,
+        is_default: existingTag.isDefault,
+        created_at: existingTag.createdAt.toISOString(),
+      };
+    }
+
+    // Create new tag if it doesn't exist
+    return await createTag(normalizedName);
+  } catch (error) {
+    console.error("Error finding or creating tag:", error);
+    return null;
   }
-
-  // Create new tag if it doesn't exist
-  return createTag(normalizedName);
 }
 
-export function setRecipeTags(recipeSlug: string, tagIds: number[]): boolean {
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+export async function setRecipeTags(
+  recipeSlug: string,
+  tagIds: number[]
+): Promise<boolean> {
   try {
     // Clear existing tags
-    queries.clearRecipeTags.run(recipeSlug);
+    await db.recipeTag.deleteMany({
+      where: { recipeSlug },
+    });
 
     // Add new tags
-    for (const tagId of tagIds) {
-      queries.addTagToRecipe.run(recipeSlug, tagId);
+    if (tagIds.length > 0) {
+      await db.recipeTag.createMany({
+        data: tagIds.map((tagId) => ({
+          recipeSlug,
+          tagId,
+        })),
+      });
     }
 
     return true;

@@ -55,7 +55,7 @@ export async function getAllRecipes(): Promise<Recipe[]> {
   if (typeof window === "undefined") {
     // Server-side: import from server storage
     const { getAllRecipes } = await import("~/utils/recipe-storage.server");
-    return getAllRecipes();
+    return await getAllRecipes();
   }
 
   // Client-side: fetch from API
@@ -98,7 +98,7 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
   if (typeof window === "undefined") {
     // Server-side: import from server storage
     const { getRecipeBySlug } = await import("~/utils/recipe-storage.server");
-    return getRecipeBySlug(slug) || null;
+    return (await getRecipeBySlug(slug)) || null;
   }
 
   // Client-side: fetch from API

@@ -55,7 +55,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const locale = await i18next.getLocale(request);
-  const availableTags = getAllTags();
+  const availableTags = await getAllTags();
   return json({ locale, availableTags, user });
 };
 
@@ -208,7 +208,7 @@ export const action: ActionFunction = async ({ request }) => {
   };
 
   // Save to server storage
-  const savedRecipe = addRecipe(newRecipe);
+  const savedRecipe = await addRecipe(newRecipe);
 
   // Build redirect URL with proper language prefix
   const redirectUrl = buildI18nUrl(`/recipes/${savedRecipe.slug}`, locale);

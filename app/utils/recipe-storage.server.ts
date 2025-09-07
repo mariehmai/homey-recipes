@@ -5,179 +5,148 @@ import {
   RecipeInputSchema,
 } from "~/models";
 
-import { queries, initializeDatabase, db } from "./db.server";
+import { db } from "./db.server";
 import type { Recipe, RecipeComment } from "./recipes";
 import { toTitleCase } from "./stringExtensions";
-import {
-  getRecipeTags,
-  setRecipeTags,
-  getAllTags,
-  createTag,
-} from "./tag-storage.server";
-
-initializeDatabase();
-
-interface DatabaseRow {
-  slug: string;
-  title: string;
-  summary: string;
-  emoji: string | null;
-  prep_time: number | null;
-  cook_time: number | null;
-  servings: number | null;
-  user_id: string | null;
-  author: string;
-  tags: string;
-  ingredients: string;
-  instructions: string;
-  is_default?: boolean;
-  is_public?: boolean;
-  created_at: string;
-  updated_at: string;
-  average_rating: number;
-  rating_count: number;
-  comment_count: number;
-}
 
 // Helper function to get or create tag IDs from tag names
-function getOrCreateTagIds(tagNames: string[]): number[] {
-  const allTags = getAllTags();
+async function getOrCreateTagIds(tagNames: string[]): Promise<number[]> {
   const tagIds: number[] = [];
 
   for (const tagName of tagNames) {
     const normalizedName = tagName.toLowerCase().trim();
     if (!normalizedName) continue;
 
-    let existingTag = allTags.find((t) => t.name === normalizedName);
+    let existingTag = await db.tag.findUnique({
+      where: { name: normalizedName },
+    });
 
     if (!existingTag) {
       // Create new tag with proper title-cased display name
       const displayName = toTitleCase(tagName.trim());
-      existingTag = createTag(normalizedName, displayName) || undefined;
+      existingTag = await db.tag.create({
+        data: {
+          name: normalizedName,
+          displayName,
+          isDefault: false,
+        },
+      });
     }
 
-    if (existingTag) {
-      tagIds.push(existingTag.id);
-    }
+    tagIds.push(existingTag.id);
   }
 
   return tagIds;
 }
 
-// Convert database row to Recipe object
-function dbRowToRecipe(row: DatabaseRow): Recipe {
-  const recipeTags = getRecipeTags(row.slug);
+// Convert Prisma result to Recipe object
+function prismaToRecipe(recipe: {
+  slug: string;
+  title: string;
+  summary: string | null;
+  emoji: string | null;
+  prepTime: number | null;
+  cookTime: number | null;
+  servings: number | null;
+  author: string;
+  userId: string | null;
+  ingredients: string;
+  instructions: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isDefault: boolean;
+  isPublic: boolean;
+  recipeTags: Array<{ tag: { name: string } }>;
+  ratings: Array<{ rating: number }>;
+  comments: Array<{ id: number }>;
+}): Recipe {
+  const averageRating =
+    recipe.ratings.length > 0
+      ? recipe.ratings.reduce(
+          (sum: number, r: { rating: number }) => sum + r.rating,
+          0
+        ) / recipe.ratings.length
+      : 0;
 
   return {
-    slug: row.slug,
-    title: row.title,
-    summary: row.summary,
-    emoji: row.emoji || undefined,
-    time: row.prep_time
+    slug: recipe.slug,
+    title: recipe.title,
+    summary: recipe.summary || undefined,
+    emoji: recipe.emoji || undefined,
+    time: recipe.prepTime
       ? {
-          min: row.prep_time,
-          max: row.cook_time || undefined,
+          min: recipe.prepTime,
+          max: recipe.cookTime || undefined,
         }
       : undefined,
-    servings: row.servings || undefined,
-    author: row.author,
-    userId: row.user_id || undefined,
-    tags: recipeTags.map((tag) => tag.name),
-    ingredients: JSON.parse(row.ingredients),
-    instructions: JSON.parse(row.instructions),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-    averageRating: row.average_rating,
-    ratingCount: row.rating_count,
-    commentCount: row.comment_count,
-    isDefault: row.is_default || false,
-    isPublic: row.is_public !== undefined ? Boolean(row.is_public) : true,
+    servings: recipe.servings || undefined,
+    author: recipe.author,
+    userId: recipe.userId || undefined,
+    tags: recipe.recipeTags.map((rt) => rt.tag.name),
+    ingredients: JSON.parse(recipe.ingredients),
+    instructions: JSON.parse(recipe.instructions),
+    createdAt: recipe.createdAt.toISOString(),
+    updatedAt: recipe.updatedAt.toISOString(),
+    averageRating,
+    ratingCount: recipe.ratings.length,
+    commentCount: recipe.comments.length,
+    isDefault: recipe.isDefault,
+    isPublic: recipe.isPublic,
   };
 }
 
-export function getAllRecipes(userId?: string): Recipe[] {
-  if (!queries) {
-    console.error("Database not initialized");
-    return [];
-  }
-
+export async function getAllRecipes(userId?: string): Promise<Recipe[]> {
   try {
-    // If no user is provided, only show public recipes
-    // If user is provided, show public recipes + user's private recipes
-    let query;
-    let params: string[] = [];
+    const recipes = await db.recipe.findMany({
+      where: userId
+        ? {
+            OR: [{ isPublic: true }, { userId }],
+          }
+        : { isPublic: true },
+      include: {
+        recipeTags: {
+          include: {
+            tag: true,
+          },
+        },
+        ratings: true,
+        comments: true,
+      },
+      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+    });
 
-    if (userId) {
-      query = db.prepare(`
-        SELECT r.*,
-          COALESCE(AVG(rt.rating), 0) as average_rating,
-          COUNT(rt.rating) as rating_count,
-          COUNT(c.id) as comment_count
-        FROM recipes r
-        LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
-        LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
-        WHERE r.is_public = 1 OR r.user_id = ?
-        GROUP BY r.id
-        ORDER BY r.is_default DESC, r.created_at DESC
-      `);
-      params = [userId];
-    } else {
-      query = db.prepare(`
-        SELECT r.*,
-          COALESCE(AVG(rt.rating), 0) as average_rating,
-          COUNT(rt.rating) as rating_count,
-          COUNT(c.id) as comment_count
-        FROM recipes r
-        LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
-        LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
-        WHERE r.is_public = 1
-        GROUP BY r.id
-        ORDER BY r.is_default DESC, r.created_at DESC
-      `);
-    }
-
-    const rows = query.all(...params) as DatabaseRow[];
-    return rows.map(dbRowToRecipe);
+    return recipes.map(prismaToRecipe);
   } catch (error) {
     console.error("Error fetching recipes:", error);
     return [];
   }
 }
 
-export function getRecipeBySlug(slug: string): Recipe | undefined {
-
-  if (!queries) {
-    console.error("Database not initialized");
-    return undefined;
-  }
-
+export async function getRecipeBySlug(
+  slug: string
+): Promise<Recipe | undefined> {
   try {
-    const query = db.prepare(`
-      SELECT r.*,
-        COALESCE(AVG(rt.rating), 0) as average_rating,
-        COUNT(rt.rating) as rating_count,
-        COUNT(c.id) as comment_count
-      FROM recipes r
-      LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
-      LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
-      WHERE r.slug = ?
-      GROUP BY r.id
-    `);
+    const recipe = await db.recipe.findUnique({
+      where: { slug },
+      include: {
+        recipeTags: {
+          include: {
+            tag: true,
+          },
+        },
+        ratings: true,
+        comments: true,
+      },
+    });
 
-    const row = query.get(slug) as DatabaseRow | undefined;
-    return row ? dbRowToRecipe(row) : undefined;
+    return recipe ? prismaToRecipe(recipe) : undefined;
   } catch (error) {
     console.error(`Error fetching recipe ${slug}:`, error);
     return undefined;
   }
 }
 
-export function addRecipe(recipe: Recipe): Recipe {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+export async function addRecipe(recipe: Recipe): Promise<Recipe> {
   const validation = RecipeSchema.safeParse(recipe);
   if (!validation.success) {
     throw new Error(
@@ -190,33 +159,37 @@ export function addRecipe(recipe: Recipe): Recipe {
     let uniqueSlug = recipe.slug;
     let counter = 1;
 
-    while (queries.recipeExists.get(uniqueSlug)) {
+    while (await db.recipe.findUnique({ where: { slug: uniqueSlug } })) {
       uniqueSlug = `${recipe.slug}-${counter}`;
       counter++;
     }
 
     const finalRecipe = { ...recipe, slug: uniqueSlug };
 
-    queries.insertRecipe.run(
-      finalRecipe.slug,
-      finalRecipe.title,
-      finalRecipe.summary || "",
-      finalRecipe.emoji || null,
-      finalRecipe.time?.min || null,
-      finalRecipe.time?.max || null,
-      finalRecipe.servings || null,
-      finalRecipe.userId || null,
-      "[]", // Empty JSON array for backward compatibility
-      JSON.stringify(finalRecipe.ingredients),
-      JSON.stringify(finalRecipe.instructions),
-      finalRecipe.author || "Anonymous",
-      0, // is_default = false (user recipe)
-      finalRecipe.isPublic !== undefined ? (finalRecipe.isPublic ? 1 : 0) : 1 // Default to public
-    );
+    // Create recipe
+    await db.recipe.create({
+      data: {
+        slug: finalRecipe.slug,
+        title: finalRecipe.title,
+        summary: finalRecipe.summary || null,
+        emoji: finalRecipe.emoji || null,
+        prepTime: finalRecipe.time?.min || null,
+        cookTime: finalRecipe.time?.max || null,
+        servings: finalRecipe.servings || null,
+        userId: finalRecipe.userId || null,
+        tags: "[]", // Empty JSON array for backward compatibility
+        ingredients: JSON.stringify(finalRecipe.ingredients),
+        instructions: JSON.stringify(finalRecipe.instructions),
+        author: finalRecipe.author || "Anonymous",
+        isDefault: false,
+        isPublic:
+          finalRecipe.isPublic !== undefined ? finalRecipe.isPublic : true,
+      },
+    });
 
     // Add tags to the recipe
-    const tagIds = getOrCreateTagIds(finalRecipe.tags);
-    setRecipeTags(finalRecipe.slug, tagIds);
+    const tagIds = await getOrCreateTagIds(finalRecipe.tags);
+    await setRecipeTags(finalRecipe.slug, tagIds);
 
     console.log(`✅ Recipe ${finalRecipe.slug} added successfully`);
     return finalRecipe;
@@ -226,15 +199,10 @@ export function addRecipe(recipe: Recipe): Recipe {
   }
 }
 
-export function updateRecipe(
+export async function updateRecipe(
   slug: string,
   updatedRecipe: Omit<Recipe, "slug">
-): Recipe | null {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+): Promise<Recipe | null> {
   const validation = RecipeInputSchema.safeParse(updatedRecipe);
   if (!validation.success) {
     throw new Error(
@@ -243,39 +211,35 @@ export function updateRecipe(
   }
 
   try {
-    const existingRecipe = queries.getRecipeBySlug.get(slug) as
-      | DatabaseRow
-      | undefined;
+    const existingRecipe = await db.recipe.findUnique({ where: { slug } });
     if (!existingRecipe) {
       return null;
     }
 
     // Don't allow updating default recipes
-    if (existingRecipe.is_default) {
+    if (existingRecipe.isDefault) {
       throw new Error("Cannot update default recipes");
     }
 
-    const result = queries.updateRecipe.run(
-      updatedRecipe.title,
-      updatedRecipe.summary || "",
-      updatedRecipe.emoji || null,
-      updatedRecipe.time?.min || null,
-      updatedRecipe.time?.max || null,
-      updatedRecipe.servings || null,
-      "[]", // Empty JSON array for backward compatibility
-      JSON.stringify(updatedRecipe.ingredients),
-      JSON.stringify(updatedRecipe.instructions),
-      updatedRecipe.author || "Anonymous",
-      slug
-    );
-
-    if (result.changes === 0) {
-      return null;
-    }
+    await db.recipe.update({
+      where: { slug },
+      data: {
+        title: updatedRecipe.title,
+        summary: updatedRecipe.summary || null,
+        emoji: updatedRecipe.emoji || null,
+        prepTime: updatedRecipe.time?.min || null,
+        cookTime: updatedRecipe.time?.max || null,
+        servings: updatedRecipe.servings || null,
+        tags: "[]", // Empty JSON array for backward compatibility
+        ingredients: JSON.stringify(updatedRecipe.ingredients),
+        instructions: JSON.stringify(updatedRecipe.instructions),
+        author: updatedRecipe.author || "Anonymous",
+      },
+    });
 
     // Update tags for the recipe
-    const tagIds = getOrCreateTagIds(updatedRecipe.tags);
-    setRecipeTags(slug, tagIds);
+    const tagIds = await getOrCreateTagIds(updatedRecipe.tags);
+    await setRecipeTags(slug, tagIds);
 
     console.log(`✅ Recipe ${slug} updated successfully`);
     return { ...updatedRecipe, slug };
@@ -285,15 +249,16 @@ export function updateRecipe(
   }
 }
 
-export function deleteRecipe(slug: string): boolean {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+export async function deleteRecipe(slug: string): Promise<boolean> {
   try {
-    const result = queries.deleteRecipe.run(slug);
-    const success = result.changes > 0;
+    const deleted = await db.recipe.deleteMany({
+      where: {
+        slug,
+        isDefault: false,
+      },
+    });
+
+    const success = deleted.count > 0;
 
     if (success) {
       console.log(`✅ Recipe ${slug} deleted successfully`);
@@ -309,49 +274,64 @@ export function deleteRecipe(slug: string): boolean {
 }
 
 // Additional utility functions for the new system
-export function getCustomRecipes(): Recipe[] {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+export async function getCustomRecipes(): Promise<Recipe[]> {
   try {
-    const rows = queries.getAllRecipes.all() as DatabaseRow[];
-    return rows.filter((row) => !row.is_default).map(dbRowToRecipe);
+    const recipes = await db.recipe.findMany({
+      where: { isDefault: false },
+      include: {
+        recipeTags: {
+          include: {
+            tag: true,
+          },
+        },
+        ratings: true,
+        comments: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return recipes.map(prismaToRecipe);
   } catch (error) {
     console.error("Error fetching custom recipes:", error);
     return [];
   }
 }
 
-export function getDefaultRecipes(): Recipe[] {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+export async function getDefaultRecipes(): Promise<Recipe[]> {
   try {
-    const rows = queries.getAllRecipes.all() as DatabaseRow[];
-    return rows.filter((row) => row.is_default).map(dbRowToRecipe);
+    const recipes = await db.recipe.findMany({
+      where: { isDefault: true },
+      include: {
+        recipeTags: {
+          include: {
+            tag: true,
+          },
+        },
+        ratings: true,
+        comments: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return recipes.map(prismaToRecipe);
   } catch (error) {
     console.error("Error fetching default recipes:", error);
     return [];
   }
 }
 
-export function getRecipeStats() {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+export async function getRecipeStats() {
   try {
-    const all = queries.getAllRecipes.all() as DatabaseRow[];
-    const defaultCount = all.filter((row) => row.is_default).length;
-    const customCount = all.filter((row) => !row.is_default).length;
+    const total = await db.recipe.count();
+    const defaultCount = await db.recipe.count({
+      where: { isDefault: true },
+    });
+    const customCount = await db.recipe.count({
+      where: { isDefault: false },
+    });
 
     return {
-      total: all.length,
+      total,
       default: defaultCount,
       custom: customCount,
     };
@@ -362,48 +342,51 @@ export function getRecipeStats() {
 }
 
 // Rating functions
-export function getUserRating(
+export async function getUserRating(
   recipeSlug: string,
   userIp: string
-): number | null {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+): Promise<number | null> {
   try {
-    const result = queries.getUserRating.get(recipeSlug, userIp) as
-      | { rating: number }
-      | undefined;
-    return result ? result.rating : null;
+    const rating = await db.recipeRating.findUnique({
+      where: {
+        recipeSlug_userIp: {
+          recipeSlug,
+          userIp,
+        },
+      },
+    });
+
+    return rating ? rating.rating : null;
   } catch (error) {
     console.error("Error fetching user rating:", error);
     return null;
   }
 }
 
-export function addOrUpdateRating(
+export async function addOrUpdateRating(
   recipeSlug: string,
   rating: number,
   userIp: string
-): boolean {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+): Promise<boolean> {
   try {
-    const existingRating = getUserRating(recipeSlug, userIp);
+    await db.recipeRating.upsert({
+      where: {
+        recipeSlug_userIp: {
+          recipeSlug,
+          userIp,
+        },
+      },
+      update: {
+        rating,
+      },
+      create: {
+        recipeSlug,
+        rating,
+        userIp,
+      },
+    });
 
-    if (existingRating !== null) {
-      // Update existing rating
-      const result = queries.updateRating.run(rating, recipeSlug, userIp);
-      return result.changes > 0;
-    } else {
-      // Insert new rating
-      const result = queries.insertRating.run(recipeSlug, rating, userIp);
-      return result.changes > 0;
-    }
+    return true;
   } catch (error) {
     console.error("Error adding/updating rating:", error);
     return false;
@@ -411,28 +394,21 @@ export function addOrUpdateRating(
 }
 
 // Comment functions
-
-export function getRecipeComments(recipeSlug: string): RecipeComment[] {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+export async function getRecipeComments(
+  recipeSlug: string
+): Promise<RecipeComment[]> {
   try {
-    const rows = queries.getRecipeComments.all(recipeSlug) as Array<{
-      id: number;
-      author_name: string;
-      comment: string;
-      created_at: string;
-      user_id: string | null;
-    }>;
+    const comments = await db.recipeComment.findMany({
+      where: { recipeSlug },
+      orderBy: { createdAt: "desc" },
+    });
 
-    return rows.map((row) => ({
-      id: row.id,
-      authorName: row.author_name,
-      comment: row.comment,
-      createdAt: row.created_at,
-      userId: row.user_id || undefined,
+    return comments.map((comment) => ({
+      id: comment.id,
+      authorName: comment.authorName,
+      comment: comment.comment,
+      createdAt: comment.createdAt.toISOString(),
+      userId: comment.userId || undefined,
     }));
   } catch (error) {
     console.error("Error fetching comments:", error);
@@ -440,18 +416,13 @@ export function getRecipeComments(recipeSlug: string): RecipeComment[] {
   }
 }
 
-export function addComment(
+export async function addComment(
   recipeSlug: string,
   authorName: string,
   comment: string,
   userIp: string,
   userId?: string
-): boolean {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+): Promise<boolean> {
   const validation = CommentSchema.safeParse({ authorName, comment });
   if (!validation.success) {
     throw new Error(
@@ -460,33 +431,40 @@ export function addComment(
   }
 
   try {
-    const result = queries.insertComment.run(
-      recipeSlug,
-      authorName,
-      comment,
-      userIp,
-      userId || null
-    );
-    return result.changes > 0;
+    await db.recipeComment.create({
+      data: {
+        recipeSlug,
+        authorName,
+        comment,
+        userIp,
+        userId: userId || null,
+      },
+    });
+
+    return true;
   } catch (error) {
     console.error("Error adding comment:", error);
     return false;
   }
 }
 
-export function updateComment(
+export async function updateComment(
   commentId: number,
   newComment: string,
   userId: string
-): boolean {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+): Promise<boolean> {
   try {
-    const result = queries.updateComment.run(newComment, commentId, userId);
-    return result.changes > 0;
+    const updated = await db.recipeComment.updateMany({
+      where: {
+        id: commentId,
+        userId,
+      },
+      data: {
+        comment: newComment,
+      },
+    });
+
+    return updated.count > 0;
   } catch (error) {
     console.error("Error updating comment:", error);
     return false;
@@ -494,29 +472,23 @@ export function updateComment(
 }
 
 // Get latest recipes (newest first)
-export function getLatestRecipes(limit: number = 10): Recipe[] {
-
-  if (!queries) {
-    console.error("Database not initialized");
-    return [];
-  }
-
+export async function getLatestRecipes(limit: number = 10): Promise<Recipe[]> {
   try {
-    const query = db.prepare(`
-      SELECT r.*,
-        COALESCE(AVG(rt.rating), 0) as average_rating,
-        COUNT(rt.rating) as rating_count,
-        COUNT(c.id) as comment_count
-      FROM recipes r
-      LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
-      LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
-      GROUP BY r.id
-      ORDER BY r.created_at DESC
-      LIMIT ?
-    `);
+    const recipes = await db.recipe.findMany({
+      include: {
+        recipeTags: {
+          include: {
+            tag: true,
+          },
+        },
+        ratings: true,
+        comments: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
 
-    const rows = query.all(limit) as DatabaseRow[];
-    return rows.map(dbRowToRecipe);
+    return recipes.map(prismaToRecipe);
   } catch (error) {
     console.error("Error fetching latest recipes:", error);
     return [];
@@ -524,49 +496,51 @@ export function getLatestRecipes(limit: number = 10): Recipe[] {
 }
 
 // Get trendy recipes (highest rated with minimum ratings)
-export function getTrendyRecipes(
+export async function getTrendyRecipes(
   limit: number = 10,
   minRatings: number = 3
-): Recipe[] {
-
-  if (!queries) {
-    console.error("Database not initialized");
-    return [];
-  }
-
+): Promise<Recipe[]> {
   try {
-    const query = db.prepare(`
-      SELECT r.*,
-        AVG(rt.rating) as average_rating,
-        COUNT(rt.rating) as rating_count,
-        COUNT(c.id) as comment_count
-      FROM recipes r
-      LEFT JOIN recipe_ratings rt ON r.slug = rt.recipe_slug
-      LEFT JOIN recipe_comments c ON r.slug = c.recipe_slug
-      GROUP BY r.id
-      HAVING COUNT(rt.rating) >= ? AND AVG(rt.rating) >= 4.0
-      ORDER BY AVG(rt.rating) DESC, COUNT(rt.rating) DESC
-      LIMIT ?
-    `);
+    const recipes = await db.recipe.findMany({
+      include: {
+        recipeTags: {
+          include: {
+            tag: true,
+          },
+        },
+        ratings: true,
+        comments: true,
+      },
+    });
 
-    const rows = query.all(minRatings, limit) as DatabaseRow[];
-    return rows.map(dbRowToRecipe);
+    // Filter and sort in JavaScript since Prisma doesn't support complex aggregations easily
+    const recipesWithRatings = recipes
+      .filter((recipe) => recipe.ratings.length >= minRatings)
+      .map((recipe) => ({
+        recipe,
+        avgRating:
+          recipe.ratings.reduce((sum, r) => sum + r.rating, 0) /
+          recipe.ratings.length,
+      }))
+      .filter((item) => item.avgRating >= 4.0)
+      .sort((a, b) => {
+        if (a.avgRating !== b.avgRating) return b.avgRating - a.avgRating;
+        return b.recipe.ratings.length - a.recipe.ratings.length;
+      })
+      .slice(0, limit);
+
+    return recipesWithRatings.map((item) => prismaToRecipe(item.recipe));
   } catch (error) {
     console.error("Error fetching trendy recipes:", error);
     return [];
   }
 }
 
-export function updateRecipeRating(
+export async function updateRecipeRating(
   recipeSlug: string,
   rating: number,
   userIp?: string
-): boolean {
-
-  if (!queries) {
-    throw new Error("Database not initialized");
-  }
-
+): Promise<boolean> {
   const validation = RatingSchema.safeParse({ rating });
   if (!validation.success) {
     throw new Error(
@@ -578,7 +552,7 @@ export function updateRecipeRating(
     // Use a simple user identification for now (in production, use proper user auth)
     const userId = userIp || "anonymous";
 
-    const success = addOrUpdateRating(recipeSlug, rating, userId);
+    const success = await addOrUpdateRating(recipeSlug, rating, userId);
 
     if (success) {
       console.log(
@@ -590,5 +564,26 @@ export function updateRecipeRating(
   } catch (error) {
     console.error(`Error updating rating for recipe ${recipeSlug}:`, error);
     return false;
+  }
+}
+
+// Helper function for tags (need to implement the tag functions)
+async function setRecipeTags(
+  recipeSlug: string,
+  tagIds: number[]
+): Promise<void> {
+  // First, remove existing tags
+  await db.recipeTag.deleteMany({
+    where: { recipeSlug },
+  });
+
+  // Then add new tags
+  if (tagIds.length > 0) {
+    await db.recipeTag.createMany({
+      data: tagIds.map((tagId) => ({
+        recipeSlug,
+        tagId,
+      })),
+    });
   }
 }

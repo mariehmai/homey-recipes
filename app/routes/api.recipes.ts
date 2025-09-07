@@ -6,7 +6,7 @@ import { getAllRecipes, addRecipe } from "~/utils/recipe-storage.server";
 import type { Recipe } from "~/utils/recipes";
 
 export const loader: LoaderFunction = async () => {
-  const recipes = getAllRecipes();
+  const recipes = await getAllRecipes();
   return json(recipes);
 };
 
@@ -30,7 +30,7 @@ export const action: ActionFunction = async ({ request }) => {
         }
 
         const recipe = validation.data as Recipe;
-        const newRecipe = addRecipe(recipe);
+        const newRecipe = await addRecipe(recipe);
         return json(newRecipe, { status: 201 });
       } catch (error) {
         return json({ error: "Invalid JSON data" }, { status: 400 });

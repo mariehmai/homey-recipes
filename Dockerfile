@@ -28,6 +28,13 @@ RUN npm ci --include=dev
 # Copy application code
 COPY --link . .
 
+# Set DATABASE_URL for Prisma
+ENV DATABASE_URL="file:/data/papilles_et_mami.db"
+
+# Run Prisma migrations and generate client
+RUN npx prisma migrate deploy
+RUN npm run db:generate
+
 # Build application
 RUN npm run build
 

@@ -11,19 +11,23 @@
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/index.js",
     "typecheck": "tsc",
-    "db:reset": "rm -f data/papilles_et_mami.db && echo 'Database reset! It will be recreated on next server start.'"
+    "db:reset": "rm -rf prisma/papilles_et_mami.db && npm run db:migrate && npm run db:seed",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:generate": "prisma generate",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@prisma/client": "^6.15.0",
     "@remix-run/css-bundle": "^2.8.0",
     "@remix-run/node": "^2.8.0",
     "@remix-run/react": "^2.8.0",
     "@remix-run/serve": "^2.8.0",
     "@remixicon/react": "^4.2.0",
-    "@types/better-sqlite3": "^7.6.13",
-    "better-sqlite3": "^12.2.0",
     "clsx": "^2.1.0",
     "i18next": "^23.16.0",
     "i18next-browser-languagedetector": "^8.0.0",
@@ -55,7 +59,9 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-unused-imports": "^3.1.0",
     "postcss": "^8.5.6",
+    "prisma": "^6.15.0",
     "tailwindcss": "^4.1.12",
+    "tsx": "^4.20.5",
     "typescript": "^5.1.6"
   },
   "engines": {

@@ -5,7 +5,7 @@ import { getAllTags } from "~/utils/tag-storage.server";
 
 export const loader: LoaderFunction = async () => {
   try {
-    const tags = getAllTags();
+    const tags = await getAllTags();
     return json(tags);
   } catch (error) {
     console.error("Error fetching tags:", error);

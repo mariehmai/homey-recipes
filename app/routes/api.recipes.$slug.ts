@@ -16,7 +16,7 @@ export const loader: LoaderFunction = async ({ params }) => {
     return json({ error: "Recipe slug is required" }, { status: 400 });
   }
 
-  const recipe = getRecipeBySlug(slug);
+  const recipe = await getRecipeBySlug(slug);
 
   if (!recipe) {
     return json({ error: "Recipe not found" }, { status: 404 });
@@ -50,7 +50,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         }
 
         const updatedRecipeData = validation.data as Omit<Recipe, "slug">;
-        const updatedRecipe = updateRecipe(slug, updatedRecipeData);
+        const updatedRecipe = await updateRecipe(slug, updatedRecipeData);
 
         if (!updatedRecipe) {
           return json({ error: "Recipe not found" }, { status: 404 });

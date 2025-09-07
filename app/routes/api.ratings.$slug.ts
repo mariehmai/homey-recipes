@@ -16,7 +16,7 @@ export const loader: LoaderFunction = async ({ params }) => {
   }
 
   try {
-    const recipe = getRecipeBySlug(slug);
+    const recipe = await getRecipeBySlug(slug);
     if (!recipe) {
       return json({ error: "Recipe not found" }, { status: 404 });
     }
@@ -55,7 +55,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
       const { rating } = validation.data;
 
-      const recipe = getRecipeBySlug(slug);
+      const recipe = await getRecipeBySlug(slug);
       if (!recipe) {
         return json({ error: "Recipe not found" }, { status: 404 });
       }
@@ -67,7 +67,7 @@ export const action: ActionFunction = async ({ request, params }) => {
       }
 
       // Get updated recipe to return current stats
-      const updatedRecipe = getRecipeBySlug(slug);
+      const updatedRecipe = await getRecipeBySlug(slug);
 
       return json({
         success: true,

@@ -31,7 +31,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const locale = await i18next.getLocale(request);
-  const recipes = getAllRecipes();
+  const recipes = await getAllRecipes();
   return json({ recipes, locale });
 };
 

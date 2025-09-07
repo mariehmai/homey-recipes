@@ -6,8 +6,8 @@ import { getAllTags } from "~/utils/tag-storage.server";
 
 export const loader: LoaderFunction = async () => {
   try {
-    const tags = getAllTags();
-    const recipes = getAllRecipes();
+    const tags = await getAllTags();
+    const recipes = await getAllRecipes();
 
     // Popular recipe categories commonly found on recipe websites
     const popularTagNames = [

@@ -6,8 +6,6 @@
 app = 'papilles-et-mami'
 primary_region = 'cdg'
 
-[build]
-
 [http_service]
 auto_stop_machines = 'stop'
 internal_port = 3000

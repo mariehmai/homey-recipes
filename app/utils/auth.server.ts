@@ -3,7 +3,7 @@ import { GoogleStrategy } from "remix-auth-google";
 
 import { UserSchema } from "~/models";
 
-import { queries } from "./db.server";
+import { db } from "./db.server";
 import { sessionStorage } from "./session.server";
 
 export interface User {
@@ -34,25 +34,31 @@ const googleStrategy = new GoogleStrategy(
     if (!validation.success) {
       throw new Error(
         `Invalid user data from Google: ${JSON.stringify(
-          validation.error.format()
+          validation.error.flatten()
         )}`
       );
     }
 
     // Save or update user in database
-    if (queries) {
-      try {
-        queries.insertOrUpdateUser.run(
-          user.id,
-          user.email,
-          user.name,
-          null, // username - will be set in profile page
-          user.avatar
-        );
-        console.log(`✅ User ${user.email} saved to database`);
-      } catch (error) {
-        console.error("Error saving user to database:", error);
-      }
+    try {
+      await db.user.upsert({
+        where: { id: user.id },
+        update: {
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+        },
+        create: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          username: null, // username - will be set in profile page
+          avatar: user.avatar,
+        },
+      });
+      console.log(`✅ User ${user.email} saved to database`);
+    } catch (error) {
+      console.error("Error saving user to database:", error);
     }
 
     return user;

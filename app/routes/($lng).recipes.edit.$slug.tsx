@@ -47,13 +47,13 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     throw new Response("Recipe not found", { status: 404 });
   }
 
-  const recipe = getRecipeBySlug(slug);
+  const recipe = await getRecipeBySlug(slug);
 
   if (!recipe) {
     throw new Response("Recipe not found", { status: 404 });
   }
 
-  const availableTags = getAllTags();
+  const availableTags = await getAllTags();
 
   return json({ locale, recipe, availableTags });
 };
@@ -157,7 +157,7 @@ export const action: ActionFunction = async ({ params, request }) => {
     isPublic,
   };
 
-  const result = updateRecipe(slug, updatedRecipe);
+  const result = await updateRecipe(slug, updatedRecipe);
 
   if (!result) {
     return Response.json({ error: "Failed to update recipe" }, { status: 500 });

@@ -1,5 +1,6 @@
-import { queries } from "./db.server";
-import type { Recipe } from "./recipes";
+import { PrismaClient } from "@prisma/client";
+
+const db = new PrismaClient();
 
 const defaultTags = [
   { name: "quick", displayName: "Quick" },
@@ -13,7 +14,7 @@ const defaultTags = [
   { name: "vegan", displayName: "Vegan" },
 ];
 
-const defaultRecipes: Recipe[] = [
+const defaultRecipes = [
   {
     slug: "riz-saute",
     title: "Riz Sauté",
@@ -35,7 +36,8 @@ const defaultRecipes: Recipe[] = [
       { unit: "tbsp", quantity: "1", name: "vinaigre de riz" },
       { unit: "tsp", quantity: "2", name: "poivre blanc" },
     ],
-    time: { min: 10, max: 20 },
+    prepTime: 10,
+    cookTime: 20,
     instructions: [
       {
         description:
@@ -62,7 +64,9 @@ const defaultRecipes: Recipe[] = [
           "Éteindre le feu et finir en ajoutant la coriandre. Goûter et ajuster.",
       },
     ],
+    author: "Default",
     tags: ["savory", "quick"],
+    isDefault: true,
     isPublic: true,
   },
   {
@@ -84,7 +88,8 @@ const defaultRecipes: Recipe[] = [
       { unit: "cup", quantity: "1", name: "tomates cerises" },
       { unit: "n", quantity: "", name: "échalotes frites pour garnir" },
     ],
-    time: { min: 45, max: 80 },
+    prepTime: 45,
+    cookTime: 80,
     instructions: [
       {
         description:
@@ -111,7 +116,9 @@ const defaultRecipes: Recipe[] = [
         description: "Servir avec du riz jasmin et garnir d'échalotes frites.",
       },
     ],
+    author: "Default",
     tags: ["savory", "spicy"],
+    isDefault: true,
     isPublic: true,
   },
   {
@@ -129,7 +136,8 @@ const defaultRecipes: Recipe[] = [
       { unit: "tsp", quantity: "1", name: "levure chimique" },
       { unit: "n", quantity: "", name: "beurre pour la cuisson" },
     ],
-    time: { min: 15, max: 20 },
+    prepTime: 15,
+    cookTime: 20,
     instructions: [
       { description: "Écraser les bananes à la fourchette." },
       { description: "Mélanger la farine, sucre et levure dans un bol." },
@@ -141,7 +149,9 @@ const defaultRecipes: Recipe[] = [
       { description: "Cuire dans une poêle beurrée, 2-3 minutes par face." },
       { description: "Servir chaud avec sirop d'érable." },
     ],
+    author: "Default",
     tags: ["sweet", "dessert", "quick"],
+    isDefault: true,
     isPublic: true,
   },
   {
@@ -164,7 +174,8 @@ const defaultRecipes: Recipe[] = [
         name: "beurre supplémentaire pour la cuisson",
       },
     ],
-    time: { min: 90, max: 120 },
+    prepTime: 90,
+    cookTime: 120,
     instructions: [
       { description: "Mélanger farine, sel et sucre dans un grand bol." },
       { description: "Faire un puits au centre et ajouter les œufs." },
@@ -197,7 +208,9 @@ const defaultRecipes: Recipe[] = [
           "Empiler les crêpes avec du papier sulfurisé entre chacune.",
       },
     ],
+    author: "Default",
     tags: ["sweet", "dessert"],
+    isDefault: true,
     isPublic: true,
   },
   {
@@ -220,7 +233,8 @@ const defaultRecipes: Recipe[] = [
       { unit: "n", quantity: "0.25", name: "cup fresh parsley, chopped" },
       { unit: "n", quantity: "", name: "pita bread for serving" },
     ],
-    time: { min: 25, max: 35 },
+    prepTime: 25,
+    cookTime: 35,
     instructions: [
       {
         description: "Heat olive oil in a large skillet over medium heat.",
@@ -245,7 +259,9 @@ const defaultRecipes: Recipe[] = [
           "Garnish with fresh parsley and serve with warm pita bread.",
       },
     ],
+    author: "Default",
     tags: ["vegan", "savory", "quick"],
+    isDefault: true,
     isPublic: true,
   },
   {
@@ -270,7 +286,8 @@ const defaultRecipes: Recipe[] = [
       { unit: "n", quantity: "", name: "fresh herbs (cilantro, basil, mint)" },
       { unit: "n", quantity: "", name: "lime wedges" },
     ],
-    time: { min: 180, max: 240 },
+    prepTime: 180,
+    cookTime: 240,
     instructions: [
       {
         description:
@@ -306,7 +323,9 @@ const defaultRecipes: Recipe[] = [
           "Serve with bean sprouts, herbs, and lime wedges on the side.",
       },
     ],
+    author: "Default",
     tags: ["soup", "savory"],
+    isDefault: true,
     isPublic: true,
   },
   {
@@ -328,7 +347,8 @@ const defaultRecipes: Recipe[] = [
       { unit: "kg", quantity: "1", name: "potatoes, quartered" },
       { unit: "n", quantity: "2", name: "onions, sliced" },
     ],
-    time: { min: 90, max: 120 },
+    prepTime: 90,
+    cookTime: 120,
     instructions: [
       {
         description:
@@ -358,7 +378,9 @@ const defaultRecipes: Recipe[] = [
         description: "Let rest for 10 minutes before carving and serving.",
       },
     ],
+    author: "Default",
     tags: ["savory"],
+    isDefault: true,
     isPublic: true,
   },
   {
@@ -383,7 +405,8 @@ const defaultRecipes: Recipe[] = [
       { unit: "tsp", quantity: "2", name: "salt" },
       { unit: "n", quantity: "", name: "lemon wedges for serving" },
     ],
-    time: { min: 45, max: 60 },
+    prepTime: 45,
+    cookTime: 60,
     instructions: [
       {
         description:
@@ -420,123 +443,81 @@ const defaultRecipes: Recipe[] = [
         description: "Serve with lemon wedges.",
       },
     ],
+    author: "Default",
     tags: ["savory", "spicy"],
+    isDefault: true,
     isPublic: true,
   },
 ];
 
-export function seedDefaultTags(): boolean {
-  try {
-    console.log("🌱 Seeding default tags...");
+async function main() {
+  console.log("🌱 Starting seed...");
 
-    if (!queries) {
-      console.error("❌ Database queries not initialized");
-      return false;
-    }
+  // Create default tags
+  console.log("Creating default tags...");
+  for (const tag of defaultTags) {
+    await db.tag.upsert({
+      where: { name: tag.name },
+      update: {},
+      create: {
+        name: tag.name,
+        displayName: tag.displayName,
+        isDefault: true,
+      },
+    });
+  }
 
-    let seedCount = 0;
+  // Create default recipes
+  console.log("Creating default recipes...");
+  for (const recipe of defaultRecipes) {
+    await db.recipe.upsert({
+      where: { slug: recipe.slug },
+      update: {},
+      create: {
+        slug: recipe.slug,
+        title: recipe.title,
+        summary: recipe.summary,
+        emoji: recipe.emoji,
+        prepTime: recipe.prepTime,
+        cookTime: recipe.cookTime,
+        ingredients: JSON.stringify(recipe.ingredients),
+        instructions: JSON.stringify(recipe.instructions),
+        author: recipe.author,
+        tags: JSON.stringify(recipe.tags), // For backward compatibility
+        isDefault: recipe.isDefault,
+        isPublic: recipe.isPublic,
+      },
+    });
 
-    for (const tag of defaultTags) {
-      try {
-        queries.insertTag.run(tag.name, tag.displayName, 1); // is_default = true
-        seedCount++;
-      } catch (error: unknown) {
-        if (
-          error instanceof Error &&
-          "code" in error &&
-          error.code === "SQLITE_CONSTRAINT_UNIQUE"
-        ) {
-          console.log(`⚠️  Tag ${tag.name} already exists, skipping`);
-          continue;
-        }
-        throw error;
+    // Add recipe tags
+    for (const tagName of recipe.tags) {
+      const tag = await db.tag.findUnique({ where: { name: tagName } });
+      if (tag) {
+        await db.recipeTag.upsert({
+          where: {
+            recipeSlug_tagId: {
+              recipeSlug: recipe.slug,
+              tagId: tag.id,
+            },
+          },
+          update: {},
+          create: {
+            recipeSlug: recipe.slug,
+            tagId: tag.id,
+          },
+        });
       }
     }
-
-    console.log(`✅ Seeded ${seedCount} default tags successfully`);
-    return true;
-  } catch (error) {
-    console.error("❌ Error seeding default tags:", error);
-    return false;
   }
+
+  console.log("✅ Seed completed successfully!");
 }
 
-export function seedDefaultRecipes(): boolean {
-  try {
-    console.log("🌱 Seeding default recipes...");
-
-    if (!queries) {
-      console.error("❌ Database queries not initialized");
-      return false;
-    }
-
-    // Seed tags first
-    seedDefaultTags();
-
-    // Check if we already have default recipes
-    const { count } = queries.countDefaultRecipes.get() as { count: number };
-
-    if (count > 0) {
-      console.log(`✅ Default recipes already seeded (${count} recipes)`);
-      return true;
-    }
-
-    let seedCount = 0;
-
-    // Insert all default recipes
-    for (const recipe of defaultRecipes) {
-      try {
-        queries.insertRecipe.run(
-          recipe.slug,
-          recipe.title,
-          recipe.summary || "",
-          recipe.emoji || null,
-          recipe.time?.min || null,
-          recipe.time?.max || null,
-          recipe.servings || null,
-          null, // user_id = null (default recipes)
-          JSON.stringify(recipe.tags),
-          JSON.stringify(recipe.ingredients),
-          JSON.stringify(recipe.instructions),
-          recipe.author || "Chef",
-          1, // is_default = true
-          recipe.isPublic !== undefined ? (recipe.isPublic ? 1 : 0) : 1 // Default to public
-        );
-
-        // Add tags to the recipe
-        for (const tagName of recipe.tags) {
-          const allTags = queries.getAllTags.all() as Array<{
-            id: number;
-            name: string;
-          }>;
-          const tag = allTags.find((t) => t.name === tagName);
-          if (tag) {
-            queries.addTagToRecipe.run(recipe.slug, tag.id);
-          }
-        }
-
-        seedCount++;
-      } catch (error: unknown) {
-        if (
-          error instanceof Error &&
-          "code" in error &&
-          error.code === "SQLITE_CONSTRAINT_UNIQUE"
-        ) {
-          console.log(`⚠️  Recipe ${recipe.slug} already exists, skipping`);
-          continue;
-        }
-        throw error;
-      }
-    }
-
-    console.log(`✅ Seeded ${seedCount} default recipes successfully`);
-    return true;
-  } catch (error) {
-    console.error("❌ Error seeding default recipes:", error);
-    return false;
-  }
-}
-
-export function getDefaultRecipesList(): Recipe[] {
-  return defaultRecipes;
-}
+main()
+  .catch((e) => {
+    console.error("❌ Seed failed:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await db.$disconnect();
+  });

@@ -1,0 +1,101 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id
+  email     String   @unique
+  name      String
+  username  String?
+  avatar    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  recipes  Recipe[]
+  comments RecipeComment[]
+
+  @@map("users")
+}
+
+model Recipe {
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique
+  title        String
+  summary      String?
+  emoji        String?
+  prepTime     Int?     @map("prep_time")
+  cookTime     Int?     @map("cook_time")
+  servings     Int?
+  author       String   @default("Anonymous")
+  userId       String?  @map("user_id")
+  tags         String
+  ingredients  String
+  instructions String
+  isDefault    Boolean  @default(false) @map("is_default")
+  isPublic     Boolean  @default(true) @map("is_public")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user       User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ratings    RecipeRating[]
+  comments   RecipeComment[]
+  recipeTags RecipeTag[]
+
+  @@map("recipes")
+}
+
+model RecipeRating {
+  id         Int      @id @default(autoincrement())
+  recipeSlug String   @map("recipe_slug")
+  rating     Int
+  userIp     String   @map("user_ip")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  recipe Recipe @relation(fields: [recipeSlug], references: [slug], onDelete: Cascade)
+
+  @@unique([recipeSlug, userIp])
+  @@map("recipe_ratings")
+}
+
+model RecipeComment {
+  id         Int      @id @default(autoincrement())
+  recipeSlug String   @map("recipe_slug")
+  authorName String   @default("Anonymous") @map("author_name")
+  comment    String
+  userIp     String   @map("user_ip")
+  userId     String?  @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  recipe Recipe @relation(fields: [recipeSlug], references: [slug], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id])
+
+  @@map("recipe_comments")
+}
+
+model Tag {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  displayName String   @map("display_name")
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  recipeTags RecipeTag[]
+
+  @@map("tags")
+}
+
+model RecipeTag {
+  recipeSlug String @map("recipe_slug")
+  tagId      Int    @map("tag_id")
+
+  recipe Recipe @relation(fields: [recipeSlug], references: [slug], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([recipeSlug, tagId])
+  @@map("recipe_tags")
+}
